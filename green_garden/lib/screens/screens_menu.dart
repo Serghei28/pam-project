@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'login_screen.dart';
 import 'plants_screen.dart';
+import 'plant_card_screen.dart';
 
-// Временное меню для просмотра экранов на этапе L2.
-// На этапе L3 его заменит навигация через go_router.
 class ScreensMenu extends StatelessWidget {
   const ScreensMenu({super.key});
 
@@ -28,7 +27,12 @@ class ScreensMenu extends StatelessWidget {
             icon: Icons.local_florist,
             screen: PlantsScreen(),
           ),
-          // Сюда будем добавлять новые экраны
+                    _MenuItem(
+            title: 'Карточка растения',
+            icon: Icons.eco,
+            screen: PlantCardScreen(),
+          ),
+          
         ],
       ),
     );
