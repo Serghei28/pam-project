@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/section_title.dart';
+import '../widgets/status_badge.dart';
 import 'app_drawer.dart';
 
 class PlantCardScreen extends StatelessWidget {
@@ -18,6 +21,7 @@ class PlantCardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
+              // Пока экран статический: кнопка ничего не делает
             },
           ),
         ],
@@ -25,6 +29,7 @@ class PlantCardScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Фото (пока заглушка)
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -39,6 +44,7 @@ class PlantCardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          // Название, вид и статус
           Row(
             children: [
               Expanded(
@@ -56,25 +62,12 @@ class PlantCardScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'Полито',
-                  style: TextStyle(
-                    color: Colors.green.shade900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              const StatusBadge(isWatered: true),
             ],
           ),
           const SizedBox(height: 16),
 
+          // Интервал и последний полив
           const Row(
             children: [
               Expanded(
@@ -98,6 +91,7 @@ class PlantCardScreen extends StatelessWidget {
 
           FilledButton.icon(
             onPressed: () {
+              // Пока экран статический: кнопка ничего не делает
             },
             icon: const Icon(Icons.water_drop),
             label: const Padding(
@@ -106,7 +100,8 @@ class PlantCardScreen extends StatelessWidget {
             ),
           ),
 
-          const _SectionTitle('История поливов'),
+          // История поливов
+          const SectionTitle('История поливов'),
           const Card(
             child: Column(
               children: [
@@ -131,7 +126,8 @@ class PlantCardScreen extends StatelessWidget {
             ),
           ),
 
-          const _SectionTitle('Напоминания'),
+          // Напоминания
+          const SectionTitle('Напоминания'),
           const Card(
             child: Column(
               children: [
@@ -155,25 +151,7 @@ class PlantCardScreen extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String text;
-
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 8),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
-}
-
+// Небольшая карточка с иконкой, подписью и значением
 class _InfoCard extends StatelessWidget {
   final IconData icon;
   final String label;

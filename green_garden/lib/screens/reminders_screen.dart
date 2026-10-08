@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/section_title.dart';
 import 'app_drawer.dart';
 
 class RemindersScreen extends StatelessWidget {
@@ -7,7 +9,7 @@ class RemindersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       drawer: appDrawer(context, 5),
+      drawer: appDrawer(context, 5),
       appBar: AppBar(
         title: const Text('Напоминания'),
         centerTitle: true,
@@ -15,7 +17,7 @@ class RemindersScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
-          _SectionTitle('Предстоящие'),
+          SectionTitle('Предстоящие'),
           _ReminderItem(
             plant: 'Орхидея',
             type: 'Полить',
@@ -45,7 +47,7 @@ class RemindersScreen extends StatelessWidget {
             isOverdue: false,
           ),
 
-          _SectionTitle('Выполненные'),
+          SectionTitle('Выполненные'),
           _ReminderItem(
             plant: 'Алоэ',
             type: 'Полить',
@@ -66,25 +68,7 @@ class RemindersScreen extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String text;
-
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
-}
-
+// Одно напоминание в списке
 class _ReminderItem extends StatelessWidget {
   final String plant;
   final String type;
