@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_drawer.dart';
 
 class PlantFormScreen extends StatelessWidget {
   const PlantFormScreen({super.key});
@@ -15,7 +16,6 @@ class PlantFormScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Блок выбора фото (пока заглушка)
           Container(
             height: 180,
             decoration: BoxDecoration(
@@ -41,7 +41,6 @@ class PlantFormScreen extends StatelessWidget {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
             icon: const Icon(Icons.photo_library_outlined),
             label: const Text('Выбрать фото'),
@@ -82,7 +81,6 @@ class PlantFormScreen extends StatelessWidget {
 
           FilledButton(
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 14),

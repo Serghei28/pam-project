@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_drawer.dart';
 
 class PlantsScreen extends StatelessWidget {
   const PlantsScreen({super.key});
@@ -6,6 +7,7 @@ class PlantsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+            drawer: appDrawer(context, 1),
       appBar: AppBar(
         title: const Text('Мои растения'),
         centerTitle: true,
@@ -13,14 +15,12 @@ class PlantsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
         children: const [
-          // Строка поиска (пока статическая)
           SearchBar(
             hintText: 'Поиск растений',
             leading: Icon(Icons.search),
           ),
           SizedBox(height: 16),
 
-          // Растения с «зашитыми» данными
           _PlantCard(
             name: 'Монстера',
             species: 'Monstera deliciosa',
@@ -55,7 +55,6 @@ class PlantsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Пока экран статический: кнопка ничего не делает
         },
         icon: const Icon(Icons.add),
         label: const Text('Добавить'),
@@ -64,7 +63,6 @@ class PlantsScreen extends StatelessWidget {
   }
 }
 
-// Карточка одного растения в списке
 class _PlantCard extends StatelessWidget {
   final String name;
   final String species;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_drawer.dart';
 
 class WateringJournalScreen extends StatelessWidget {
   const WateringJournalScreen({super.key});
@@ -6,6 +7,7 @@ class WateringJournalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       drawer: appDrawer(context, 4),
       appBar: AppBar(
         title: const Text('Журнал полива'),
         centerTitle: true,
@@ -13,7 +15,6 @@ class WateringJournalScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Форма отметки полива
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -82,7 +83,6 @@ class WateringJournalScreen extends StatelessWidget {
 
                   FilledButton.icon(
                     onPressed: () {
-                      // Пока экран статический: кнопка ничего не делает
                     },
                     icon: const Icon(Icons.water_drop),
                     label: const Padding(
@@ -95,7 +95,6 @@ class WateringJournalScreen extends StatelessWidget {
             ),
           ),
 
-          // История записей
           Padding(
             padding: const EdgeInsets.only(top: 24, bottom: 8),
             child: Text(
@@ -131,7 +130,6 @@ class WateringJournalScreen extends StatelessWidget {
   }
 }
 
-// Одна запись в журнале
 class _LogItem extends StatelessWidget {
   final String plant;
   final String dateTime;

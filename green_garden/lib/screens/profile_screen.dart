@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_drawer.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -9,6 +10,7 @@ class ProfileScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+       drawer: appDrawer(context, 6),
       appBar: AppBar(
         title: const Text('Профиль'),
         centerTitle: true,
@@ -16,7 +18,6 @@ class ProfileScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Аватар, имя и email
           Center(
             child: CircleAvatar(
               radius: 48,
@@ -44,7 +45,6 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Статистика
           const Row(
             children: [
               Expanded(
@@ -62,7 +62,6 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Настройки
           const Card(
             child: Column(
               children: [
@@ -90,7 +89,6 @@ class ProfileScreen extends StatelessWidget {
 
           OutlinedButton.icon(
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
             icon: const Icon(Icons.logout),
             label: const Padding(
@@ -104,7 +102,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// Карточка со статистикой: число и подпись
 class _StatCard extends StatelessWidget {
   final String value;
   final String label;

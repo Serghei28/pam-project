@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_drawer.dart';
 
 class PlantCardScreen extends StatelessWidget {
   const PlantCardScreen({super.key});
@@ -9,6 +10,7 @@ class PlantCardScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      drawer: appDrawer(context, 2),
       appBar: AppBar(
         title: const Text('Карточка растения'),
         centerTitle: true,
@@ -16,7 +18,6 @@ class PlantCardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
           ),
         ],
@@ -24,7 +25,6 @@ class PlantCardScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Фото (пока заглушка)
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -39,7 +39,6 @@ class PlantCardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Название, вид и статус
           Row(
             children: [
               Expanded(
@@ -76,7 +75,6 @@ class PlantCardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Интервал и последний полив
           const Row(
             children: [
               Expanded(
@@ -100,7 +98,6 @@ class PlantCardScreen extends StatelessWidget {
 
           FilledButton.icon(
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
             icon: const Icon(Icons.water_drop),
             label: const Padding(
@@ -109,7 +106,6 @@ class PlantCardScreen extends StatelessWidget {
             ),
           ),
 
-          // История поливов
           const _SectionTitle('История поливов'),
           const Card(
             child: Column(
@@ -135,7 +131,6 @@ class PlantCardScreen extends StatelessWidget {
             ),
           ),
 
-          // Напоминания
           const _SectionTitle('Напоминания'),
           const Card(
             child: Column(
@@ -160,7 +155,6 @@ class PlantCardScreen extends StatelessWidget {
   }
 }
 
-// Заголовок раздела
 class _SectionTitle extends StatelessWidget {
   final String text;
 
@@ -180,7 +174,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-// Небольшая карточка с иконкой, подписью и значением
 class _InfoCard extends StatelessWidget {
   final IconData icon;
   final String label;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_drawer.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -8,7 +9,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // true = режим «Вход», false = режим «Регистрация»
   bool _isLogin = true;
 
   @override
@@ -17,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      appBar: AppBar(backgroundColor: Colors.transparent),
+      drawer: appDrawer(context, 0),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -47,7 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Поле «Имя» показываем только при регистрации
                   if (!_isLogin) ...[
                     const TextField(
                       decoration: InputDecoration(
@@ -81,7 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   FilledButton(
                     onPressed: () {
-                      // Пока экран статический: кнопка ничего не делает
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 14),
