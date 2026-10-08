@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'plants_screen.dart';
 import 'plant_card_screen.dart';
+import 'plant_form_screen.dart';
 
 class ScreensMenu extends StatelessWidget {
   const ScreensMenu({super.key});
@@ -31,6 +32,11 @@ class ScreensMenu extends StatelessWidget {
             title: 'Карточка растения',
             icon: Icons.eco,
             screen: PlantCardScreen(),
+          ),
+                    _MenuItem(
+            title: 'Форма растения',
+            icon: Icons.edit_note,
+            screen: PlantFormScreen(),
           ),
           
         ],
