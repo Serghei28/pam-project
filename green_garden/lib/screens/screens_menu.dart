@@ -6,6 +6,7 @@ import 'plant_card_screen.dart';
 import 'plant_form_screen.dart';
 import 'watering_journal_screen.dart';
 import 'reminders_screen.dart';
+import 'profile_screen.dart';
 
 class ScreensMenu extends StatelessWidget {
   const ScreensMenu({super.key});
@@ -50,7 +51,11 @@ class ScreensMenu extends StatelessWidget {
             icon: Icons.notifications_outlined,
             screen: RemindersScreen(),
           ),
-          
+                    _MenuItem(
+            title: 'Профиль',
+            icon: Icons.person_outline,
+            screen: ProfileScreen(),
+          ),
         ],
       ),
     );
