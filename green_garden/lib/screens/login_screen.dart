@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_drawer.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,8 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent),
-      drawer: appDrawer(context, 0),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -82,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   FilledButton(
                     onPressed: () {
+                      context.go('/plants');
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 14),
