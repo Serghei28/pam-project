@@ -8,6 +8,7 @@ import 'screens/profile_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/watering_journal_screen.dart';
+import 'widgets/app_shell.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -20,34 +21,57 @@ final router = GoRouter(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
     ),
-    GoRoute(
-      path: '/plants',
-      builder: (context, state) => const PlantsScreen(),
-      routes: [
-        GoRoute(
-          path: 'new', 
-          builder: (context, state) => const PlantFormScreen(),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          AppShell(navigationShell: navigationShell),
+      branches: [
+        
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/plants',
+              builder: (context, state) => const PlantsScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new', 
+                  builder: (context, state) => const PlantFormScreen(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final id = int.parse(state.pathParameters['id']!);
+                    return PlantCardScreen(id: id);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
-        GoRoute(
-          path: ':id', 
-          builder: (context, state) {
-            final id = int.parse(state.pathParameters['id']!);
-            return PlantCardScreen(id: id);
-          },
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/journal',
+              builder: (context, state) => const WateringJournalScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/reminders',
+              builder: (context, state) => const RemindersScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
         ),
       ],
-    ),
-    GoRoute(
-      path: '/journal',
-      builder: (context, state) => const WateringJournalScreen(),
-    ),
-    GoRoute(
-      path: '/reminders',
-      builder: (context, state) => const RemindersScreen(),
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
     ),
   ],
 );
