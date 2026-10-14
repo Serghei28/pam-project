@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/mock_data.dart';
 import '../widgets/plant_card.dart';
 import 'app_drawer.dart';
 
@@ -14,52 +15,35 @@ class PlantsScreen extends StatelessWidget {
         title: const Text('Мои растения'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-        children: const [
-          // Строка поиска (пока статическая)
-          SearchBar(
-            hintText: 'Поиск растений',
-            leading: Icon(Icons.search),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: SearchBar(
+              hintText: 'Поиск растений',
+              leading: Icon(Icons.search),
+            ),
           ),
-          SizedBox(height: 16),
 
-          // Растения с «зашитыми» данными
-          PlantCard(
-            name: 'Монстера',
-            species: 'Monstera deliciosa',
-            lastWatered: 'Сегодня',
-            isWatered: true,
-          ),
-          PlantCard(
-            name: 'Фикус Бенджамина',
-            species: 'Ficus benjamina',
-            lastWatered: '6 дней назад',
-            isWatered: false,
-          ),
-          PlantCard(
-            name: 'Алоэ',
-            species: 'Aloe vera',
-            lastWatered: '3 дня назад',
-            isWatered: true,
-          ),
-          PlantCard(
-            name: 'Орхидея',
-            species: 'Phalaenopsis',
-            lastWatered: '8 дней назад',
-            isWatered: false,
-          ),
-          PlantCard(
-            name: 'Замиокулькас',
-            species: 'Zamioculcas zamiifolia',
-            lastWatered: 'Вчера',
-            isWatered: true,
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+              itemCount: mockPlants.length,
+              itemBuilder: (context, index) {
+                final plant = mockPlants[index];
+                return PlantCard(
+                  name: plant.name,
+                  species: plant.species,
+                  lastWatered: plant.lastWatered,
+                  isWatered: plant.isWatered,
+                );
+              },
+            ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Пока экран статический: кнопка ничего не делает
         },
         icon: const Icon(Icons.add),
         label: const Text('Добавить'),
