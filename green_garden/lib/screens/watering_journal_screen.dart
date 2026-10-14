@@ -81,8 +81,11 @@ class WateringJournalScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  FilledButton.icon(
+                   FilledButton.icon(
                     onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Полив записан в журнал')),
+                      );
                     },
                     icon: const Icon(Icons.water_drop),
                     label: const Padding(

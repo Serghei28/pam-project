@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
-
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Выйти из аккаунта?'),
+        content: const Text('Чтобы продолжить, нужно будет войти снова.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: const Text('Нет'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Да, выйти'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true && context.mounted) {
+      context.go('/login'); // go: раздел с вкладками уходит из стека
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +34,6 @@ class ProfileScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-
       appBar: AppBar(
         title: const Text('Профиль'),
         centerTitle: true,
@@ -48,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
           const Row(
             children: [
               Expanded(
-                child: _StatCard(value: '5', label: 'Растений'),
+                child: _StatCard(value: '8', label: 'Растений'),
               ),
               SizedBox(width: 8),
               Expanded(
@@ -56,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               SizedBox(width: 8),
               Expanded(
-                child: _StatCard(value: '4', label: 'Напоминания'),
+                child: _StatCard(value: '6', label: 'Напоминаний'),
               ),
             ],
           ),
@@ -88,8 +111,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           OutlinedButton.icon(
-            onPressed: () {
-            },
+            onPressed: () => _logout(context),
             icon: const Icon(Icons.logout),
             label: const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),

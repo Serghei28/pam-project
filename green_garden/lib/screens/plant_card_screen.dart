@@ -88,8 +88,11 @@ class PlantCardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          FilledButton.icon(
+                    FilledButton.icon(
             onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Полив отмечен: ${plant.name}')),
+              );
             },
             icon: const Icon(Icons.water_drop),
             label: const Padding(
