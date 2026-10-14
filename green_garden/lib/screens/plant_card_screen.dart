@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../data/mock_data.dart';
 import '../widgets/section_title.dart';
 import '../widgets/status_badge.dart';
 
-
 class PlantCardScreen extends StatelessWidget {
-  const PlantCardScreen({super.key});
+  final int id;
+
+  const PlantCardScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
+    final plant = mockPlants.firstWhere((p) => p.id == id);
 
+    return Scaffold(
       appBar: AppBar(
         title: const Text('Карточка растения'),
         centerTitle: true,
@@ -21,7 +24,6 @@ class PlantCardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
           ),
         ],
@@ -29,7 +31,6 @@ class PlantCardScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Фото (пока заглушка)
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -44,7 +45,6 @@ class PlantCardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Название, вид и статус
           Row(
             children: [
               Expanded(
@@ -52,37 +52,36 @@ class PlantCardScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Монстера',
+                      plant.name,
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text('Monstera deliciosa', style: textTheme.bodyLarge),
+                    Text(plant.species, style: textTheme.bodyLarge),
                   ],
                 ),
               ),
-              const StatusBadge(isWatered: true),
+              StatusBadge(isWatered: plant.isWatered),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Интервал и последний полив
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: _InfoCard(
                   icon: Icons.schedule,
                   label: 'Интервал полива',
-                  value: 'Каждые 7 дней',
+                  value: 'Каждые ${plant.wateringIntervalDays} дн.',
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: _InfoCard(
                   icon: Icons.water_drop_outlined,
                   label: 'Последний полив',
-                  value: 'Сегодня',
+                  value: plant.lastWatered,
                 ),
               ),
             ],
@@ -91,7 +90,6 @@ class PlantCardScreen extends StatelessWidget {
 
           FilledButton.icon(
             onPressed: () {
-              // Пока экран статический: кнопка ничего не делает
             },
             icon: const Icon(Icons.water_drop),
             label: const Padding(
@@ -100,7 +98,6 @@ class PlantCardScreen extends StatelessWidget {
             ),
           ),
 
-          // История поливов
           const SectionTitle('История поливов'),
           const Card(
             child: Column(
@@ -126,21 +123,20 @@ class PlantCardScreen extends StatelessWidget {
             ),
           ),
 
-          // Напоминания
           const SectionTitle('Напоминания'),
-          const Card(
+          Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: Icon(Icons.notifications_active_outlined),
-                  title: Text('Полить Монстеру'),
-                  subtitle: Text('Срок: 14 октября 2026'),
+                  leading: const Icon(Icons.notifications_active_outlined),
+                  title: Text('Полить: ${plant.name}'),
+                  subtitle: const Text('Срок: 14 октября 2026'),
                 ),
-                Divider(height: 1),
+                const Divider(height: 1),
                 ListTile(
-                  leading: Icon(Icons.notifications_active_outlined),
-                  title: Text('Протереть листья'),
-                  subtitle: Text('Срок: 20 октября 2026'),
+                  leading: const Icon(Icons.notifications_active_outlined),
+                  title: Text('Протереть листья: ${plant.name}'),
+                  subtitle: const Text('Срок: 20 октября 2026'),
                 ),
               ],
             ),
@@ -151,7 +147,6 @@ class PlantCardScreen extends StatelessWidget {
   }
 }
 
-// Небольшая карточка с иконкой, подписью и значением
 class _InfoCard extends StatelessWidget {
   final IconData icon;
   final String label;

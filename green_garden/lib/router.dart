@@ -31,7 +31,8 @@ final router = GoRouter(
         GoRoute(
           path: ':id', 
           builder: (context, state) {
-            return const PlantCardScreen();
+            final id = int.parse(state.pathParameters['id']!);
+            return PlantCardScreen(id: id);
           },
         ),
       ],

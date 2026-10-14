@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
 import '../widgets/plant_card.dart';
-
 
 class PlantsScreen extends StatelessWidget {
   const PlantsScreen({super.key});
@@ -10,7 +10,6 @@ class PlantsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         title: const Text('Мои растения'),
         centerTitle: true,
@@ -36,6 +35,7 @@ class PlantsScreen extends StatelessWidget {
                   species: plant.species,
                   lastWatered: plant.lastWatered,
                   isWatered: plant.isWatered,
+                  onTap: () => context.push('/plants/${plant.id}'),
                 );
               },
             ),
@@ -43,8 +43,7 @@ class PlantsScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-        },
+        onPressed: () => context.push('/plants/new'),
         icon: const Icon(Icons.add),
         label: const Text('Добавить'),
       ),
