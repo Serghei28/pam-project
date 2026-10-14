@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
 import '../widgets/plant_card.dart';
-import 'app_drawer.dart';
+
 
 class PlantsScreen extends StatelessWidget {
   const PlantsScreen({super.key});
@@ -10,7 +10,7 @@ class PlantsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: appDrawer(context, 1),
+
       appBar: AppBar(
         title: const Text('Мои растения'),
         centerTitle: true,

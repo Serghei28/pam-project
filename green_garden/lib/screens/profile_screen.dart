@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_drawer.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,7 +10,7 @@ class ProfileScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-       drawer: appDrawer(context, 6),
+
       appBar: AppBar(
         title: const Text('Профиль'),
         centerTitle: true,

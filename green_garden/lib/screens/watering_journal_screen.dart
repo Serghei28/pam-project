@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_drawer.dart';
+
 
 class WateringJournalScreen extends StatelessWidget {
   const WateringJournalScreen({super.key});
@@ -7,7 +7,7 @@ class WateringJournalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       drawer: appDrawer(context, 4),
+
       appBar: AppBar(
         title: const Text('Журнал полива'),
         centerTitle: true,

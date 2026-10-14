@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/section_title.dart';
-import 'app_drawer.dart';
+
 
 class RemindersScreen extends StatelessWidget {
   const RemindersScreen({super.key});
@@ -9,7 +9,7 @@ class RemindersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: appDrawer(context, 5),
+
       appBar: AppBar(
         title: const Text('Напоминания'),
         centerTitle: true,

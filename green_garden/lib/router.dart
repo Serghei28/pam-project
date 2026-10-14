@@ -29,7 +29,7 @@ final router = GoRouter(
           builder: (context, state) => const PlantFormScreen(),
         ),
         GoRoute(
-          path: ':id', /
+          path: ':id', 
           builder: (context, state) {
             return const PlantCardScreen();
           },

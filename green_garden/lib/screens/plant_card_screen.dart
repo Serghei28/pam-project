@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/section_title.dart';
 import '../widgets/status_badge.dart';
-import 'app_drawer.dart';
+
 
 class PlantCardScreen extends StatelessWidget {
   const PlantCardScreen({super.key});
@@ -13,7 +13,7 @@ class PlantCardScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      drawer: appDrawer(context, 2),
+
       appBar: AppBar(
         title: const Text('Карточка растения'),
         centerTitle: true,

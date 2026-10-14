@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'app_drawer.dart';
+
 
 class PlantFormScreen extends StatelessWidget {
   const PlantFormScreen({super.key});
@@ -10,7 +10,7 @@ class PlantFormScreen extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      drawer: appDrawer(context, 3),
+
       appBar: AppBar(
         title: const Text('Новое растение'),
         centerTitle: true,
