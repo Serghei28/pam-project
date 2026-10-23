@@ -1,84 +1,64 @@
-class Plant {
-  final int id;
-  final String name;
-  final String species;
-  final int wateringIntervalDays;
-  final String lastWatered;
-  final bool isWatered;
+import 'plant.dart';
 
-  const Plant({
-    required this.id,
-    required this.name,
-    required this.species,
-    required this.wateringIntervalDays,
-    required this.lastWatered,
-    required this.isWatered,
-  });
-}
+// Только seed-данные. Даты считаются от сегодняшнего дня,
+// поэтому статусы «полито / пора поливать» верны при любом запуске.
+DateTime _daysAgo(int days) => DateTime.now().subtract(Duration(days: days));
 
-const List<Plant> mockPlants = [
+final List<Plant> mockPlants = [
   Plant(
     id: 1,
     name: 'Монстера',
     species: 'Monstera deliciosa',
     wateringIntervalDays: 7,
-    lastWatered: 'Сегодня',
-    isWatered: true,
+    lastWateredAt: _daysAgo(0),
   ),
   Plant(
     id: 2,
     name: 'Фикус Бенджамина',
     species: 'Ficus benjamina',
     wateringIntervalDays: 5,
-    lastWatered: '6 дней назад',
-    isWatered: false,
+    lastWateredAt: _daysAgo(6),
   ),
   Plant(
     id: 3,
     name: 'Алоэ вера',
     species: 'Aloe vera',
     wateringIntervalDays: 14,
-    lastWatered: '3 дня назад',
-    isWatered: true,
+    lastWateredAt: _daysAgo(3),
   ),
   Plant(
     id: 4,
     name: 'Орхидея',
     species: 'Phalaenopsis',
     wateringIntervalDays: 7,
-    lastWatered: '8 дней назад',
-    isWatered: false,
+    lastWateredAt: _daysAgo(8),
   ),
   Plant(
     id: 5,
     name: 'Замиокулькас',
     species: 'Zamioculcas zamiifolia',
     wateringIntervalDays: 14,
-    lastWatered: 'Вчера',
-    isWatered: true,
+    lastWateredAt: _daysAgo(1),
   ),
   Plant(
     id: 6,
     name: 'Сансевиерия',
     species: 'Sansevieria trifasciata',
     wateringIntervalDays: 14,
-    lastWatered: '10 дней назад',
-    isWatered: true,
+    lastWateredAt: _daysAgo(10),
   ),
   Plant(
     id: 7,
     name: 'Хлорофитум',
     species: 'Chlorophytum comosum',
     wateringIntervalDays: 5,
-    lastWatered: '5 дней назад',
-    isWatered: false,
+    lastWateredAt: _daysAgo(5),
   ),
   Plant(
     id: 8,
     name: 'Спатифиллум',
     species: 'Spathiphyllum wallisii',
     wateringIntervalDays: 4,
-    lastWatered: '2 дня назад',
-    isWatered: true,
+    lastWateredAt: _daysAgo(2),
   ),
 ];

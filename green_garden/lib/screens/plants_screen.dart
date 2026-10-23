@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/mock_data.dart';
+import '../utils/dates.dart';
 import '../widgets/plant_card.dart';
 
 class PlantsScreen extends StatelessWidget {
@@ -33,8 +34,8 @@ class PlantsScreen extends StatelessWidget {
                 return PlantCard(
                   name: plant.name,
                   species: plant.species,
-                  lastWatered: plant.lastWatered,
-                  isWatered: plant.isWatered,
+                  lastWatered: daysAgoText(plant.lastWateredAt),
+                  isWatered: !plant.needsWatering,
                   onTap: () => context.push('/plants/${plant.id}'),
                 );
               },

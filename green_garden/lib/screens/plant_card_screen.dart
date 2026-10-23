@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
+import '../utils/dates.dart';
 import '../widgets/section_title.dart';
 import '../widgets/status_badge.dart';
 
@@ -83,7 +84,7 @@ class PlantCardScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              StatusBadge(isWatered: plant.isWatered),
+              StatusBadge(isWatered: !plant.needsWatering),
             ],
           ),
           const SizedBox(height: 16),
@@ -102,7 +103,7 @@ class PlantCardScreen extends StatelessWidget {
                 child: _InfoCard(
                   icon: Icons.water_drop_outlined,
                   label: 'Последний полив',
-                  value: plant.lastWatered,
+                  value: daysAgoText(plant.lastWateredAt),
                 ),
               ),
             ],
@@ -154,7 +155,8 @@ class PlantCardScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.notifications_active_outlined),
                   title: Text('Полить: ${plant.name}'),
-                  subtitle: const Text('Срок: 14 октября 2026'),
+                  // срок вычисляется из интервала полива
+                  subtitle: Text('Срок: ${formatDate(plant.nextWateringAt)}'),
                 ),
                 const Divider(height: 1),
                 ListTile(
