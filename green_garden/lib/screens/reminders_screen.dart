@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../data/reminder.dart';
+import '../models/plants_model.dart';
+import '../models/reminder_model.dart';
+import '../models/water_plant.dart';
+import '../models/watering_log_model.dart';
+import '../utils/dates.dart';
+import '../widgets/error_view.dart';
+import '../widgets/reminder_tile.dart';
 import '../widgets/section_title.dart';
-
 
 class RemindersScreen extends StatelessWidget {
   const RemindersScreen({super.key});
@@ -9,7 +17,6 @@ class RemindersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         title: const Text('Напоминания'),
         centerTitle: true,
@@ -17,99 +24,129 @@ class RemindersScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
-          SectionTitle('Предстоящие'),
-          _ReminderItem(
-            plant: 'Орхидея',
-            type: 'Полить',
-            dueDate: 'Просрочено: 6 окт. 2026',
-            isDone: false,
-            isOverdue: true,
-          ),
-          _ReminderItem(
-            plant: 'Фикус Бенджамина',
-            type: 'Полить',
-            dueDate: 'Сегодня, 8 окт. 2026',
-            isDone: false,
-            isOverdue: false,
-          ),
-          _ReminderItem(
-            plant: 'Монстера',
-            type: 'Полить',
-            dueDate: '14 окт. 2026',
-            isDone: false,
-            isOverdue: false,
-          ),
-          _ReminderItem(
-            plant: 'Монстера',
-            type: 'Протереть листья',
-            dueDate: '20 окт. 2026',
-            isDone: false,
-            isOverdue: false,
-          ),
-
-          SectionTitle('Выполненные'),
-          _ReminderItem(
-            plant: 'Алоэ',
-            type: 'Полить',
-            dueDate: '5 окт. 2026',
-            isDone: true,
-            isOverdue: false,
-          ),
-          _ReminderItem(
-            plant: 'Замиокулькас',
-            type: 'Подкормка',
-            dueDate: '4 окт. 2026',
-            isDone: true,
-            isOverdue: false,
-          ),
+          SectionTitle('Полив'),
+          _WateringSection(),
+          _CareSection(),
         ],
       ),
     );
   }
 }
 
-// Одно напоминание в списке
-class _ReminderItem extends StatelessWidget {
-  final String plant;
-  final String type;
-  final String dueDate;
-  final bool isDone;
-  final bool isOverdue;
-
-  const _ReminderItem({
-    required this.plant,
-    required this.type,
-    required this.dueDate,
-    required this.isDone,
-    required this.isOverdue,
-  });
+// Сроки полива ВЫЧИСЛЯЮТСЯ из интервала каждого растения —
+// отдельно они нигде не хранятся. Нажатие = отметить полив.
+class _WateringSection extends StatelessWidget {
+  const _WateringSection();
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final model = context.watch<PlantsModel>();
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(
-          isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isDone ? colors.primary : colors.outline,
-        ),
-        title: Text(
-          '$type: $plant',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            decoration: isDone ? TextDecoration.lineThrough : null,
+    if (model.isLoading) return const _Loading();
+    if (model.error != null) {
+      return ErrorView(
+        message: model.error!,
+        onRetry: () => context.read<PlantsModel>().load(),
+      );
+    }
+
+    // ближайший срок полива сверху
+    final plants = [...model.plants]
+      ..sort((a, b) => a.nextWateringAt.compareTo(b.nextWateringAt));
+
+    return Column(
+      children: [
+        for (final plant in plants)
+          ReminderTile(
+            title: 'Полить: ${plant.name}',
+            dueText: dueText(plant.nextWateringAt),
+            isOverdue: daysFromToday(plant.nextWateringAt) < 0,
+            icon: Icons.water_drop_outlined,
+            onTap: () async {
+              final error = await waterPlant(
+                plants: context.read<PlantsModel>(),
+                logs: context.read<WateringLogModel>(),
+                plantId: plant.id,
+              );
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(error ?? 'Полив отмечен: ${plant.name}'),
+                ),
+              );
+            },
           ),
-        ),
-        subtitle: Text(
-          dueDate,
-          style: TextStyle(color: isOverdue ? colors.error : null),
-        ),
-        trailing: Icon(
-          type == 'Полить' ? Icons.water_drop_outlined : Icons.eco_outlined,
-        ),
-      ),
+      ],
+    );
+  }
+}
+
+// Уход (протереть, подкормить…) — из ReminderModel.
+// Нажатие = отметить выполненным / вернуть в невыполненные.
+class _CareSection extends StatelessWidget {
+  const _CareSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final model = context.watch<ReminderModel>();
+    final plants = context.watch<PlantsModel>();
+
+    if (model.isLoading) {
+      return const Column(children: [SectionTitle('Уход'), _Loading()]);
+    }
+    if (model.error != null) {
+      return Column(
+        children: [
+          const SectionTitle('Уход'),
+          ErrorView(
+            message: model.error!,
+            onRetry: () => context.read<ReminderModel>().load(),
+          ),
+        ],
+      );
+    }
+
+    Widget tile(Reminder r) {
+      final plantName = plants.byId(r.plantId)?.name ?? 'растение удалено';
+      return ReminderTile(
+        title: '${r.type.label}: $plantName',
+        dueText: r.isDone ? formatDate(r.dueDate) : dueText(r.dueDate),
+        isDone: r.isDone,
+        isOverdue: r.isOverdue,
+        icon: reminderIcon(r.type),
+        onTap: () async {
+          final error = await context.read<ReminderModel>().toggleDone(r.id);
+          if (error != null && context.mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error)));
+          }
+        },
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Уход'),
+        if (model.pending.isEmpty) const Text('Всё сделано'),
+        for (final r in model.pending) tile(r),
+        if (model.done.isNotEmpty) ...[
+          const SectionTitle('Выполненные'),
+          for (final r in model.done) tile(r),
+        ],
+      ],
+    );
+  }
+}
+
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 }

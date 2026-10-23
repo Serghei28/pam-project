@@ -31,3 +31,16 @@ String formatTime(DateTime date) {
 // 14 окт. 2026, 09:05
 String formatDateTime(DateTime date) =>
     '${formatDate(date)}, ${formatTime(date)}';
+
+// Сколько дней от сегодня до даты: 0 — сегодня, -1 — вчера, 1 — завтра
+int daysFromToday(DateTime date) =>
+    _dateOnly(date).difference(_dateOnly(DateTime.now())).inDays;
+
+// Срок для напоминания: Просрочено / Сегодня / Завтра / дата
+String dueText(DateTime due) {
+  final days = daysFromToday(due);
+  if (days < 0) return 'Просрочено: ${formatDate(due)}';
+  if (days == 0) return 'Сегодня, ${formatDate(due)}';
+  if (days == 1) return 'Завтра, ${formatDate(due)}';
+  return formatDate(due);
+}
