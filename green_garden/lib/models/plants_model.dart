@@ -49,6 +49,17 @@ class PlantsModel extends ChangeNotifier {
 
   // Мутации возвращают null при успехе или текст ошибки (как validator).
 
+  Future<String?> add(Plant draft) async {
+    switch (await _repository.create(draft)) {
+      case Ok(:final value):
+        _plants = [..._plants, value]; // с id, выданным хранилищем
+        notifyListeners(); // список, бейдж, статистика узнают сразу
+        return null;
+      case Err(:final msg):
+        return msg; // состояние не трогаем — экран решит, что показать
+    }
+  }
+
   Future<String?> update(Plant plant) async {
     switch (await _repository.update(plant)) {
       case Ok(:final value):

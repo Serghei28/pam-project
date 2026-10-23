@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../data/plant.dart';
+import '../models/plants_model.dart';
 
 class PlantFormScreen extends StatefulWidget {
   const PlantFormScreen({super.key});
@@ -14,6 +18,7 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
   final _nameCtrl = TextEditingController();
   final _speciesCtrl = TextEditingController();
   final _intervalCtrl = TextEditingController();
+  bool _saving = false; // эфемерное состояние формы → setState
 
   @override
   void dispose() {
@@ -23,13 +28,35 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
     super.dispose();
   }
 
-  void _save() {
+  // Валидный submit ПИШЕТ через модель (а модель — через repository),
+  // затем уходит. Валидация из L3 не тронута.
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Сохранено: ${_nameCtrl.text.trim()}')),
+    final draft = Plant(
+      id: 0, // временный id — настоящий выдаст хранилище (на L5: сервер)
+      name: _nameCtrl.text.trim(),
+      species: _speciesCtrl.text.trim(),
+      wateringIntervalDays: int.parse(_intervalCtrl.text),
+      lastWateredAt: DateTime.now(), // новое растение считаем политым сегодня
     );
-    context.pop();
+
+    setState(() => _saving = true);
+    final error = await context.read<PlantsModel>().add(draft);
+    if (!mounted) return; // экран мог закрыться, пока «запрос» летел
+    setState(() => _saving = false);
+
+    if (error != null) {
+      // данные остаются в полях — можно повторить
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Сохранено: ${draft.name}')),
+    );
+    context.pop(); // список позади УЖЕ вырос — без лишних вызовов
   }
 
   @override
@@ -130,10 +157,10 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
             const SizedBox(height: 24),
 
             FilledButton(
-              onPressed: _save,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 14),
-                child: Text('Сохранить'),
+              onPressed: _saving ? null : _save, // null — кнопка неактивна
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Text(_saving ? 'Сохранение…' : 'Сохранить'),
               ),
             ),
           ],
