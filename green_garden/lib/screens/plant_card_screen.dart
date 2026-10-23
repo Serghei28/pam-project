@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/plants_model.dart';
 import '../utils/dates.dart';
+import '../widgets/error_view.dart';
 import '../widgets/section_title.dart';
 import '../widgets/status_badge.dart';
 
@@ -17,25 +19,43 @@ class PlantCardScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     // watch в build: после «Отметить полив» карточка обновится сама.
-    // byId вернёт null, если растения с таким id нет.
-    final plant = context.watch<PlantsModel>().byId(id);
+    final model = context.watch<PlantsModel>();
+    final plant = model.byId(id);
 
+    // У null три смысла: список ещё грузится, загрузка упала,
+    // или список загружен, а такого id нет (старая ссылка, удалённое растение).
     if (plant == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Карточка растения'),
-          centerTitle: true,
-        ),
-        body: Center(
+      final Widget body;
+      if (model.isLoading) {
+        body = const Center(child: CircularProgressIndicator());
+      } else if (model.error != null) {
+        body = ErrorView(
+          message: model.error!,
+          onRetry: () => context.read<PlantsModel>().load(),
+        );
+      } else {
+        body = Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.search_off, size: 64, color: colors.outline),
               const SizedBox(height: 12),
               Text('Растение не найдено', style: textTheme.titleMedium),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => context.go('/plants'),
+                child: const Text('К списку растений'),
+              ),
             ],
           ),
+        );
+      }
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Карточка растения'),
+          centerTitle: true,
         ),
+        body: body,
       );
     }
 
