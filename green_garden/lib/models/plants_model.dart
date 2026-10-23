@@ -62,6 +62,17 @@ class PlantsModel extends ChangeNotifier {
     }
   }
 
+  Future<String?> remove(int id) async {
+    switch (await _repository.delete(id)) {
+      case Ok():
+        _plants = _plants.where((p) => p.id != id).toList();
+        notifyListeners(); // растение исчезнет со всех экранов
+        return null;
+      case Err(:final msg):
+        return msg;
+    }
+  }
+
   // Отметить полив = обновить дату последнего полива через хранилище
   Future<String?> markWatered(int id, {DateTime? at}) async {
     final plant = byId(id);

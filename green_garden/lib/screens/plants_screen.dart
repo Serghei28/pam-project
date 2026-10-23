@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../data/plant.dart';
 import '../models/plants_model.dart';
 import '../utils/dates.dart';
+import '../widgets/delete_background.dart';
+import '../widgets/delete_plant_dialog.dart';
 import '../widgets/error_view.dart';
 import '../widgets/plant_card.dart';
 
@@ -69,12 +71,22 @@ class _PlantList extends StatelessWidget {
                   itemCount: plants.length,
                   itemBuilder: (context, index) {
                     final plant = plants[index];
-                    return PlantCard(
-                      name: plant.name,
-                      species: plant.species,
-                      lastWatered: daysAgoText(plant.lastWateredAt),
-                      isWatered: !plant.needsWatering,
-                      onTap: () => context.push('/plants/${plant.id}'),
+                    // Свайп влево → диалог → удаление через модель.
+                    // Ключ — id из данных (не UniqueKey).
+                    return Dismissible(
+                      key: ValueKey(plant.id),
+                      direction: DismissDirection.endToStart,
+                      background: const DeleteBackground(bottomMargin: 12),
+                      // false (отмена или ошибка) → карточка возвращается
+                      confirmDismiss: (_) =>
+                          deletePlantWithConfirm(context, plant),
+                      child: PlantCard(
+                        name: plant.name,
+                        species: plant.species,
+                        lastWatered: daysAgoText(plant.lastWateredAt),
+                        isWatered: !plant.needsWatering,
+                        onTap: () => context.push('/plants/${plant.id}'),
+                      ),
                     );
                   },
                 ),

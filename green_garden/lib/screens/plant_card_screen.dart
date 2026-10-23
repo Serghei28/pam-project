@@ -7,6 +7,7 @@ import '../models/reminder_model.dart';
 import '../models/water_plant.dart';
 import '../models/watering_log_model.dart';
 import '../utils/dates.dart';
+import '../widgets/delete_plant_dialog.dart';
 import '../widgets/error_view.dart';
 import '../widgets/reminder_tile.dart';
 import '../widgets/section_title.dart';
@@ -71,6 +72,15 @@ class PlantCardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Удалить',
+            onPressed: () async {
+              final deleted = await deletePlantWithConfirm(context, plant);
+              // растения больше нет — его экран уходит из стека
+              if (deleted && context.mounted) context.pop();
             },
           ),
         ],

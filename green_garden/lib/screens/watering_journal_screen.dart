@@ -5,6 +5,7 @@ import '../models/plants_model.dart';
 import '../models/water_plant.dart';
 import '../models/watering_log_model.dart';
 import '../utils/dates.dart';
+import '../widgets/delete_background.dart';
 import '../widgets/error_view.dart';
 import '../widgets/section_title.dart';
 
@@ -42,7 +43,7 @@ class WateringJournalScreen extends StatelessWidget {
           Dismissible(
             key: ValueKey(log.id),
             direction: DismissDirection.endToStart,
-            background: const _DeleteBackground(),
+            background: const DeleteBackground(),
             // Удаляем через модель; если хранилище вернуло ошибку —
             // запись остаётся на месте, показываем SnackBar.
             confirmDismiss: (_) async {
@@ -130,6 +131,10 @@ class _WaterFormState extends State<_WaterForm> {
   Widget build(BuildContext context) {
     final plants = context.watch<PlantsModel>().plants;
     final now = DateTime.now();
+    // Если выбранное растение удалили, выбор сбрасывается: иначе
+    // DropdownButton упал бы, не найдя своего значения среди пунктов.
+    final selectedId =
+        plants.any((p) => p.id == _plantId) ? _plantId : null;
 
     return Card(
       child: Padding(
@@ -148,7 +153,8 @@ class _WaterFormState extends State<_WaterForm> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<int>(
-                initialValue: _plantId,
+                key: ValueKey(selectedId), // новое значение → новое поле
+                initialValue: selectedId,
                 decoration: const InputDecoration(
                   labelText: 'Растение',
                   prefixIcon: Icon(Icons.local_florist_outlined),
@@ -215,26 +221,6 @@ class _WaterFormState extends State<_WaterForm> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _DeleteBackground extends StatelessWidget {
-  const _DeleteBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      alignment: Alignment.centerRight,
-      decoration: BoxDecoration(
-        color: colors.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(Icons.delete_outline, color: colors.onErrorContainer),
     );
   }
 }
