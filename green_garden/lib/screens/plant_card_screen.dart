@@ -14,7 +14,28 @@ class PlantCardScreen extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final plant = mockPlants.firstWhere((p) => p.id == id);
+    // firstOrNull вернёт null, если растения с таким id нет
+    // (firstWhere в этом случае выбрасывал бы StateError)
+    final plant = mockPlants.where((p) => p.id == id).firstOrNull;
+
+    if (plant == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Карточка растения'),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.search_off, size: 64, color: colors.outline),
+              const SizedBox(height: 12),
+              Text('Растение не найдено', style: textTheme.titleMedium),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -88,7 +109,7 @@ class PlantCardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-                    FilledButton.icon(
+          FilledButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Полив отмечен: ${plant.name}')),

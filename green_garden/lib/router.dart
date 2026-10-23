@@ -25,7 +25,6 @@ final router = GoRouter(
       builder: (context, state, navigationShell) =>
           AppShell(navigationShell: navigationShell),
       branches: [
-        
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -33,13 +32,16 @@ final router = GoRouter(
               builder: (context, state) => const PlantsScreen(),
               routes: [
                 GoRoute(
-                  path: 'new', 
+                  path: 'new',
                   builder: (context, state) => const PlantFormScreen(),
                 ),
                 GoRoute(
                   path: ':id',
                   builder: (context, state) {
-                    final id = int.parse(state.pathParameters['id']!);
+                    // tryParse не падает на адресе вида /plants/abc:
+                    // некорректный id → -1 → экран «Растение не найдено»
+                    final id =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? -1;
                     return PlantCardScreen(id: id);
                   },
                 ),
