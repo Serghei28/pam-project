@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/delete_watering_log.dart';
 import '../models/plants_model.dart';
 import '../models/water_plant.dart';
 import '../models/watering_log_model.dart';
 import '../utils/dates.dart';
 import '../widgets/delete_background.dart';
 import '../widgets/error_view.dart';
+import '../widgets/refresh_button.dart';
 import '../widgets/section_title.dart';
 
 class WateringJournalScreen extends StatelessWidget {
@@ -18,20 +20,26 @@ class WateringJournalScreen extends StatelessWidget {
     final model = context.watch<WateringLogModel>();
     final plants = context.watch<PlantsModel>();
 
-    // Три состояния списка записей
+    // Три состояния списка записей. Имена растений берутся из PlantsModel,
+    // поэтому ждём и её: иначе до загрузки растений все записи
+    // показали бы «Растение удалено».
     final List<Widget> entries;
-    if (model.isLoading) {
+    if (model.isLoading || plants.isLoading) {
       entries = const [
         Padding(
           padding: EdgeInsets.all(24),
           child: Center(child: CircularProgressIndicator()),
         ),
       ];
-    } else if (model.error != null) {
+    } else if ((model.error ?? plants.error) case final error?) {
       entries = [
         ErrorView(
-          message: model.error!,
-          onRetry: () => context.read<WateringLogModel>().load(),
+          message: error,
+          // перезагружаем только упавшие модели
+          onRetry: () {
+            if (model.error != null) context.read<WateringLogModel>().load();
+            if (plants.error != null) context.read<PlantsModel>().load();
+          },
         ),
       ];
     } else if (model.logs.isEmpty) {
@@ -47,13 +55,20 @@ class WateringJournalScreen extends StatelessWidget {
             // Удаляем через модель; если хранилище вернуло ошибку —
             // запись остаётся на месте, показываем SnackBar.
             confirmDismiss: (_) async {
-              final error =
-                  await context.read<WateringLogModel>().remove(log.id);
+              final logs = context.read<WateringLogModel>();
+              // удаляет запись и при необходимости пересчитывает
+              // дату последнего полива растения
+              final error = await deleteWateringLog(
+                plants: context.read<PlantsModel>(),
+                logs: logs,
+                log: log,
+              );
               if (error != null && context.mounted) {
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text(error)));
               }
-              return error == null;
+              // строка уходит, только если записи больше нет в модели
+              return logs.logs.every((l) => l.id != log.id);
             },
             child: _LogItem(
               plant: plants.byId(log.plantId)?.name ?? 'Растение удалено',
@@ -68,6 +83,15 @@ class WateringJournalScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Журнал полива'),
         centerTitle: true,
+        actions: [
+          RefreshButton(
+            isLoading: model.isLoading || plants.isLoading,
+            onRefresh: () {
+              context.read<WateringLogModel>().load();
+              context.read<PlantsModel>().load();
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

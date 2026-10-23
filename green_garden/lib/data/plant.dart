@@ -1,3 +1,5 @@
+import '../utils/calendar.dart';
+
 // Доменная модель растения. Переживёт L5: mock_data.dart умрёт,
 // а этот файл будут импортировать и mock, и http-репозиторий.
 class Plant {
@@ -15,13 +17,11 @@ class Plant {
     required this.lastWateredAt,
   });
 
-  // Дата следующего полива = последний полив + интервал
-  DateTime get nextWateringAt =>
-      lastWateredAt.add(Duration(days: wateringIntervalDays));
+  // Дата следующего полива = дата последнего полива + интервал (в днях)
+  DateTime get nextWateringAt => addDays(lastWateredAt, wateringIntervalDays);
 
   // Пора поливать, если срок следующего полива наступил (сегодня или раньше)
-  bool needsWateringOn(DateTime day) =>
-      !_dateOnly(nextWateringAt).isAfter(_dateOnly(day));
+  bool needsWateringOn(DateTime day) => daysBetween(day, nextWateringAt) <= 0;
 
   bool get needsWatering => needsWateringOn(DateTime.now());
 
@@ -41,6 +41,4 @@ class Plant {
       lastWateredAt: lastWateredAt ?? this.lastWateredAt,
     );
   }
-
-  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 }

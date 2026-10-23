@@ -44,9 +44,30 @@ class WateringLogModel extends ChangeNotifier {
 
   // Мутации: null — успех, строка — текст ошибки
   Future<String?> add(WateringLog draft) async {
-    switch (await _repository.create(draft)) {
-      case Ok(:final value):
-        _logs = [..._logs, value]; // с id, выданным хранилищем
+    switch (await addEntry(draft)) {
+      case Ok():
+        return null;
+      case Err(:final msg):
+        return msg;
+    }
+  }
+
+  // То же, что add, но возвращает созданную запись (с id от хранилища).
+  // Нужно сценариям из нескольких шагов (waterPlant), чтобы при сбое
+  // следующего шага можно было откатить именно эту запись.
+  Future<Result<WateringLog>> addEntry(WateringLog draft) async {
+    final result = await _repository.create(draft);
+    if (result case Ok(:final value)) {
+      _logs = [..._logs, value]; // с id, выданным хранилищем
+      notifyListeners();
+    }
+    return result;
+  }
+
+  Future<String?> remove(int id) async {
+    switch (await _repository.delete(id)) {
+      case Ok():
+        _logs = _logs.where((l) => l.id != id).toList();
         notifyListeners();
         return null;
       case Err(:final msg):
@@ -54,10 +75,11 @@ class WateringLogModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> remove(int id) async {
-    switch (await _repository.delete(id)) {
+  // Каскад: убрать всю историю поливов удалённого растения
+  Future<String?> removeForPlant(int plantId) async {
+    switch (await _repository.deleteByPlant(plantId)) {
       case Ok():
-        _logs = _logs.where((l) => l.id != id).toList();
+        _logs = _logs.where((l) => l.plantId != plantId).toList();
         notifyListeners();
         return null;
       case Err(:final msg):

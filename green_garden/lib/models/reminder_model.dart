@@ -27,6 +27,9 @@ class ReminderModel extends ChangeNotifier {
   List<Reminder> get done =>
       List.unmodifiable(_sorted(_reminders.where((r) => r.isDone)));
 
+  // Сколько напоминаний ещё не выполнено
+  int get pendingCount => _reminders.where((r) => !r.isDone).length;
+
   // Невыполненные напоминания одного растения
   List<Reminder> pendingForPlant(int plantId) => List.unmodifiable(
         _sorted(_reminders.where((r) => r.plantId == plantId && !r.isDone)),
@@ -78,6 +81,18 @@ class ReminderModel extends ChangeNotifier {
     switch (await _repository.delete(id)) {
       case Ok():
         _reminders = _reminders.where((r) => r.id != id).toList();
+        notifyListeners();
+        return null;
+      case Err(:final msg):
+        return msg;
+    }
+  }
+
+  // Каскад: убрать все напоминания удалённого растения
+  Future<String?> removeForPlant(int plantId) async {
+    switch (await _repository.deleteByPlant(plantId)) {
+      case Ok():
+        _reminders = _reminders.where((r) => r.plantId != plantId).toList();
         notifyListeners();
         return null;
       case Err(:final msg):

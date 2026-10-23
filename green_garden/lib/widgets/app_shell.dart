@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../models/care_tasks.dart';
 import '../models/plants_model.dart';
+import '../models/reminder_model.dart';
 
 class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -33,8 +35,8 @@ class AppShell extends StatelessWidget {
             label: 'Журнал',
           ),
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
+            icon: _CareBadge(child: Icon(Icons.notifications_outlined)),
+            selectedIcon: _CareBadge(child: Icon(Icons.notifications)),
             label: 'Напоминания',
           ),
           NavigationDestination(
@@ -64,6 +66,29 @@ class _DueBadge extends StatelessWidget {
         label: Text('${model.dueCount}'),
         child: child,
       ),
+      child: child,
+    );
+  }
+}
+
+// Бейдж «дел по уходу» — то же число, что в статистике профиля.
+// Consumer2 перерисовывает только бейдж при изменении любой из двух моделей.
+class _CareBadge extends StatelessWidget {
+  final Widget child;
+
+  const _CareBadge({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<PlantsModel, ReminderModel>(
+      builder: (context, plants, reminders, child) {
+        final count = careTaskCount(plants, reminders);
+        return Badge(
+          isLabelVisible: count > 0,
+          label: Text('$count'),
+          child: child,
+        );
+      },
       child: child,
     );
   }

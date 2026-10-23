@@ -1,3 +1,5 @@
+import '../utils/calendar.dart';
+
 // Виды ухода, о которых можно напомнить.
 // Полив сюда не входит: его срок вычисляется из интервала полива растения.
 enum ReminderType {
@@ -27,8 +29,7 @@ class Reminder {
   });
 
   // Просрочено: не выполнено, а срок уже прошёл (раньше сегодняшнего дня)
-  bool isOverdueOn(DateTime day) =>
-      !isDone && _dateOnly(dueDate).isBefore(_dateOnly(day));
+  bool isOverdueOn(DateTime day) => !isDone && daysBetween(day, dueDate) < 0;
 
   bool get isOverdue => isOverdueOn(DateTime.now());
 
@@ -47,6 +48,4 @@ class Reminder {
       isDone: isDone ?? this.isDone,
     );
   }
-
-  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 }

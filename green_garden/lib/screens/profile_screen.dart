@@ -2,13 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/mock_plant_repository.dart';
+import '../data/mock_reminder_repository.dart';
+import '../data/mock_watering_log_repository.dart';
+import '../models/care_tasks.dart';
 import '../models/plants_model.dart';
 import '../models/reminder_model.dart';
 import '../models/watering_log_model.dart';
 import '../widgets/error_view.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Положение переключателя — эфемерное состояние экрана → setState (C7)
+  bool _simulateError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Если экран пересоздан, показываем текущее состояние «аварии»
+    _simulateError = context.read<MockPlantRepository>().simulateError;
+  }
+
+  // Леса демонстрации аварии: ЕДИНСТВЕННОЕ место UI, которое знает о mock-ах.
+  // На L5 вместе с mock-ами исчезнет и этот переключатель.
+  void _setSimulateError(bool value) {
+    setState(() => _simulateError = value);
+    context.read<MockPlantRepository>().simulateError = value;
+    context.read<MockWateringLogRepository>().simulateError = value;
+    context.read<MockReminderRepository>().simulateError = value;
+  }
 
   Future<void> _logout(BuildContext context) async {
     final ok = await showDialog<bool>(
@@ -77,27 +105,43 @@ class ProfileScreen extends StatelessWidget {
           const _Stats(),
           const SizedBox(height: 24),
 
+          // Эти разделы появятся позже (профиль — с backend-ом на L5),
+          // поэтому пункты неактивны, а не «нажимаются впустую»
           const Card(
             child: Column(
               children: [
                 ListTile(
+                  enabled: false,
                   leading: Icon(Icons.person_outline),
                   title: Text('Редактировать профиль'),
-                  trailing: Icon(Icons.chevron_right),
+                  subtitle: Text('Скоро'),
                 ),
                 Divider(height: 1),
                 ListTile(
+                  enabled: false,
                   leading: Icon(Icons.notifications_outlined),
                   title: Text('Уведомления'),
-                  trailing: Icon(Icons.chevron_right),
+                  subtitle: Text('Скоро'),
                 ),
                 Divider(height: 1),
                 ListTile(
+                  enabled: false,
                   leading: Icon(Icons.info_outline),
                   title: Text('О приложении'),
-                  trailing: Icon(Icons.chevron_right),
+                  subtitle: Text('Скоро'),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.cloud_off_outlined),
+              title: const Text('Симулировать сбой сети'),
+              subtitle: const Text('Все запросы к данным вернут ошибку'),
+              value: _simulateError,
+              onChanged: _setSimulateError,
             ),
           ),
           const SizedBox(height: 24),
@@ -163,7 +207,7 @@ class _Stats extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _StatCard(
-            value: '${plants.dueCount + reminders.pending.length}',
+            value: '${careTaskCount(plants, reminders)}',
             label: 'Дел по уходу',
           ),
         ),

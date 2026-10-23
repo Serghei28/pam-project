@@ -4,7 +4,19 @@ import 'watering_log.dart';
 
 // Только seed-данные. Даты считаются от сегодняшнего дня,
 // поэтому статусы «полито / пора поливать» верны при любом запуске.
-DateTime _daysAgo(int days) => DateTime.now().subtract(Duration(days: days));
+// Дни считаются через DateTime(y, m, d ± n) — без ошибок перевода часов.
+
+// days дней назад, в указанное время
+DateTime _daysAgoAt(int days, int hour, int minute) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day - days, hour, minute);
+}
+
+// через days дней (отрицательное число — в прошлом)
+DateTime _inDays(int days) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day + days, 9, 0);
+}
 
 final List<Plant> mockPlants = [
   Plant(
@@ -12,64 +24,61 @@ final List<Plant> mockPlants = [
     name: 'Монстера',
     species: 'Monstera deliciosa',
     wateringIntervalDays: 7,
-    lastWateredAt: _daysAgo(0),
+    lastWateredAt: _daysAgoAt(0, 9, 0),
   ),
   Plant(
     id: 2,
     name: 'Фикус Бенджамина',
     species: 'Ficus benjamina',
     wateringIntervalDays: 5,
-    lastWateredAt: _daysAgo(6),
+    lastWateredAt: _daysAgoAt(6, 8, 45),
   ),
   Plant(
     id: 3,
     name: 'Алоэ вера',
     species: 'Aloe vera',
     wateringIntervalDays: 14,
-    lastWateredAt: _daysAgo(3),
+    lastWateredAt: _daysAgoAt(3, 10, 15),
   ),
   Plant(
     id: 4,
     name: 'Орхидея',
     species: 'Phalaenopsis',
     wateringIntervalDays: 7,
-    lastWateredAt: _daysAgo(8),
+    lastWateredAt: _daysAgoAt(8, 19, 0),
   ),
   Plant(
     id: 5,
     name: 'Замиокулькас',
     species: 'Zamioculcas zamiifolia',
     wateringIntervalDays: 14,
-    lastWateredAt: _daysAgo(1),
+    lastWateredAt: _daysAgoAt(1, 18, 30),
   ),
   Plant(
     id: 6,
     name: 'Сансевиерия',
     species: 'Sansevieria trifasciata',
     wateringIntervalDays: 14,
-    lastWateredAt: _daysAgo(10),
+    lastWateredAt: _daysAgoAt(10, 12, 0),
   ),
   Plant(
     id: 7,
     name: 'Хлорофитум',
     species: 'Chlorophytum comosum',
     wateringIntervalDays: 5,
-    lastWateredAt: _daysAgo(5),
+    lastWateredAt: _daysAgoAt(5, 9, 30),
   ),
   Plant(
     id: 8,
     name: 'Спатифиллум',
     species: 'Spathiphyllum wallisii',
     wateringIntervalDays: 4,
-    lastWateredAt: _daysAgo(2),
+    lastWateredAt: _daysAgoAt(2, 8, 45),
   ),
 ];
 
-// Журнал полива. Последние записи совпадают с lastWateredAt растений.
-DateTime _daysAgoAt(int days, int hour, int minute) {
-  final d = DateTime.now().subtract(Duration(days: days));
-  return DateTime(d.year, d.month, d.day, hour, minute);
-}
+// Журнал полива. Последняя запись каждого растения совпадает
+// с его lastWateredAt (дата и время).
 
 final List<WateringLog> mockWateringLogs = [
   WateringLog(
@@ -136,7 +145,6 @@ final List<WateringLog> mockWateringLogs = [
 
 // Напоминания об уходе (кроме полива — его срок считается из интервала).
 // Отрицательное число дней — срок уже прошёл.
-DateTime _inDays(int days) => DateTime.now().add(Duration(days: days));
 
 final List<Reminder> mockReminders = [
   Reminder(

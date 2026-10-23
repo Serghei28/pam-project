@@ -1,25 +1,16 @@
-// Форматирование дат для экранов (без пакета intl)
+// Форматирование дат для экранов (без пакета intl).
+// Параметр now нужен для unit-тестов; в приложении он не передаётся.
+
+import 'calendar.dart';
 
 const _months = [
   'янв.', 'февр.', 'мар.', 'апр.', 'мая', 'июн.',
   'июл.', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.',
 ];
 
-DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-
 // 14 окт. 2026
 String formatDate(DateTime date) =>
     '${date.day} ${_months[date.month - 1]} ${date.year}';
-
-// Сегодня / Вчера / 6 дн. назад
-String daysAgoText(DateTime date) {
-  final days =
-      _dateOnly(DateTime.now()).difference(_dateOnly(date)).inDays;
-  if (days == 0) return 'Сегодня';
-  if (days == 1) return 'Вчера';
-  if (days > 1) return '$days дн. назад';
-  return formatDate(date); // дата в будущем
-}
 
 // 09:05
 String formatTime(DateTime date) {
@@ -33,12 +24,21 @@ String formatDateTime(DateTime date) =>
     '${formatDate(date)}, ${formatTime(date)}';
 
 // Сколько дней от сегодня до даты: 0 — сегодня, -1 — вчера, 1 — завтра
-int daysFromToday(DateTime date) =>
-    _dateOnly(date).difference(_dateOnly(DateTime.now())).inDays;
+int daysFromToday(DateTime date, {DateTime? now}) =>
+    daysBetween(now ?? DateTime.now(), date);
+
+// Сегодня / Вчера / 6 дн. назад
+String daysAgoText(DateTime date, {DateTime? now}) {
+  final days = -daysFromToday(date, now: now);
+  if (days == 0) return 'Сегодня';
+  if (days == 1) return 'Вчера';
+  if (days > 1) return '$days дн. назад';
+  return formatDate(date); // дата в будущем
+}
 
 // Срок для напоминания: Просрочено / Сегодня / Завтра / дата
-String dueText(DateTime due) {
-  final days = daysFromToday(due);
+String dueText(DateTime due, {DateTime? now}) {
+  final days = daysFromToday(due, now: now);
   if (days < 0) return 'Просрочено: ${formatDate(due)}';
   if (days == 0) return 'Сегодня, ${formatDate(due)}';
   if (days == 1) return 'Завтра, ${formatDate(due)}';

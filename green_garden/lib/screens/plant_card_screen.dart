@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/plant.dart';
 import '../models/plants_model.dart';
 import '../models/reminder_model.dart';
 import '../models/water_plant.dart';
 import '../models/watering_log_model.dart';
 import '../utils/dates.dart';
+import '../widgets/async_action.dart';
 import '../widgets/delete_plant_dialog.dart';
 import '../widgets/error_view.dart';
+import '../widgets/not_found_view.dart';
 import '../widgets/reminder_tile.dart';
 import '../widgets/section_title.dart';
 import '../widgets/status_badge.dart';
@@ -20,9 +23,6 @@ class PlantCardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     // watch в build: после «Отметить полив» карточка обновится сама.
     final model = context.watch<PlantsModel>();
     final plant = model.byId(id);
@@ -39,21 +39,7 @@ class PlantCardScreen extends StatelessWidget {
           onRetry: () => context.read<PlantsModel>().load(),
         );
       } else {
-        body = Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.search_off, size: 64, color: colors.outline),
-              const SizedBox(height: 12),
-              Text('Растение не найдено', style: textTheme.titleMedium),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: () => context.go('/plants'),
-                child: const Text('К списку растений'),
-              ),
-            ],
-          ),
-        );
+        body = const NotFoundView(message: 'Растение не найдено');
       }
       return Scaffold(
         appBar: AppBar(
@@ -69,109 +55,27 @@ class PlantCardScreen extends StatelessWidget {
         title: const Text('Карточка растения'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () {
-            },
+          // Форма редактирования ещё не сделана — кнопка честно неактивна
+          const IconButton(
+            icon: Icon(Icons.edit_outlined),
+            tooltip: 'Редактирование — скоро',
+            onPressed: null,
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: 'Удалить',
-            onPressed: () async {
-              final deleted = await deletePlantWithConfirm(context, plant);
-              // растения больше нет — его экран уходит из стека
-              if (deleted && context.mounted) context.pop();
-            },
-          ),
+          _DeleteButton(plant: plant),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: colors.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.local_florist,
-              size: 96,
-              color: colors.onPrimaryContainer,
-            ),
-          ),
+          const _PlantPhoto(),
           const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      plant.name,
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(plant.species, style: textTheme.bodyLarge),
-                  ],
-                ),
-              ),
-              StatusBadge(isWatered: !plant.needsWatering),
-            ],
-          ),
+          _PlantHeader(plant: plant),
           const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: _InfoCard(
-                  icon: Icons.schedule,
-                  label: 'Интервал полива',
-                  value: 'Каждые ${plant.wateringIntervalDays} дн.',
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _InfoCard(
-                  icon: Icons.water_drop_outlined,
-                  label: 'Последний полив',
-                  value: daysAgoText(plant.lastWateredAt),
-                ),
-              ),
-            ],
-          ),
+          _PlantInfo(plant: plant),
           const SizedBox(height: 16),
-
-          FilledButton.icon(
-            onPressed: () async {
-              // read в callback-е: действие, без подписки.
-              // Полив пишет и в журнал, и дату у растения.
-              final error = await waterPlant(
-                plants: context.read<PlantsModel>(),
-                logs: context.read<WateringLogModel>(),
-                plantId: plant.id,
-              );
-              // экран мог закрыться, пока «запрос» летел
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(error ?? 'Полив отмечен: ${plant.name}'),
-                ),
-              );
-            },
-            icon: const Icon(Icons.water_drop),
-            label: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text('Отметить полив'),
-            ),
-          ),
-
+          _WaterButton(plant: plant),
           const SectionTitle('История поливов'),
           _WateringHistory(plantId: plant.id),
-
           const SectionTitle('Напоминания'),
           // срок полива вычисляется из интервала
           ReminderTile(
@@ -182,6 +86,154 @@ class PlantCardScreen extends StatelessWidget {
           ),
           _CareReminders(plantId: plant.id),
         ],
+      ),
+    );
+  }
+}
+
+// Удаление: диалог → каскадное удаление → уход с экрана.
+// Пока идёт удаление, кнопка неактивна — второй диалог не открыть.
+class _DeleteButton extends StatelessWidget {
+  final Plant plant;
+
+  const _DeleteButton({required this.plant});
+
+  @override
+  Widget build(BuildContext context) {
+    return AsyncAction(
+      action: () async {
+        final deleted = await deletePlantWithConfirm(context, plant);
+        // растения больше нет — его экран уходит из стека
+        if (deleted && context.mounted) context.pop();
+      },
+      builder: (context, busy, run) => IconButton(
+        icon: busy ? const SmallSpinner() : const Icon(Icons.delete_outline),
+        tooltip: 'Удалить',
+        onPressed: run,
+      ),
+    );
+  }
+}
+
+// Фото растения (пока иконка — загрузка фото появится на L5)
+class _PlantPhoto extends StatelessWidget {
+  const _PlantPhoto();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(
+        Icons.local_florist,
+        size: 96,
+        color: colors.onPrimaryContainer,
+      ),
+    );
+  }
+}
+
+// Название, вид и статус полива
+class _PlantHeader extends StatelessWidget {
+  final Plant plant;
+
+  const _PlantHeader({required this.plant});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                plant.name,
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (plant.species.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(plant.species, style: textTheme.bodyLarge),
+              ],
+            ],
+          ),
+        ),
+        StatusBadge(isWatered: !plant.needsWatering),
+      ],
+    );
+  }
+}
+
+// Интервал полива и дата последнего полива
+class _PlantInfo extends StatelessWidget {
+  final Plant plant;
+
+  const _PlantInfo({required this.plant});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _InfoCard(
+            icon: Icons.schedule,
+            label: 'Интервал полива',
+            value: 'Каждые ${plant.wateringIntervalDays} дн.',
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _InfoCard(
+            icon: Icons.water_drop_outlined,
+            label: 'Последний полив',
+            value: daysAgoText(plant.lastWateredAt),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// «Отметить полив». Пока полив сохраняется, кнопка неактивна —
+// двойной записи в журнал не будет.
+class _WaterButton extends StatelessWidget {
+  final Plant plant;
+
+  const _WaterButton({required this.plant});
+
+  @override
+  Widget build(BuildContext context) {
+    return AsyncAction(
+      action: () async {
+        // read в callback-е: действие, без подписки.
+        // Полив пишет и в журнал, и дату у растения.
+        final error = await waterPlant(
+          plants: context.read<PlantsModel>(),
+          logs: context.read<WateringLogModel>(),
+          plantId: plant.id,
+        );
+        // экран мог закрыться, пока «запрос» летел
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Полив отмечен: ${plant.name}')),
+        );
+      },
+      builder: (context, busy, run) => FilledButton.icon(
+        onPressed: run,
+        icon: busy ? const SmallSpinner() : const Icon(Icons.water_drop),
+        label: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Text(busy ? 'Сохранение…' : 'Отметить полив'),
+        ),
       ),
     );
   }
@@ -297,6 +349,7 @@ class _CareReminders extends StatelessWidget {
       children: [
         for (final r in model.pendingForPlant(plantId))
           ReminderTile(
+            key: ValueKey('care-${r.id}'),
             title: r.type.label,
             dueText: dueText(r.dueDate),
             isOverdue: r.isOverdue,

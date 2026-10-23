@@ -6,6 +6,12 @@ import 'package:provider/provider.dart';
 import '../data/plant.dart';
 import '../models/plants_model.dart';
 
+// Ограничения полей формы
+const _maxNameLength = 40;
+const _maxSpeciesLength = 60;
+const _minInterval = 1;
+const _maxInterval = 365;
+
 class PlantFormScreen extends StatefulWidget {
   const PlantFormScreen({super.key});
 
@@ -31,6 +37,7 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
   // Валидный submit ПИШЕТ через модель (а модель — через repository),
   // затем уходит. Валидация из L3 не тронута.
   Future<void> _save() async {
+    if (_saving) return; // уже сохраняем — повторный submit игнорируем
     if (!_formKey.currentState!.validate()) return;
 
     final draft = Plant(
@@ -73,7 +80,6 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            
             Container(
               height: 180,
               decoration: BoxDecoration(
@@ -97,12 +103,12 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            // Выбор фото появится вместе с загрузкой файлов на backend (L5),
+            // поэтому сейчас кнопка честно неактивна.
             OutlinedButton.icon(
-              onPressed: () {
-                
-              },
+              onPressed: null,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Выбрать фото'),
+              label: const Text('Выбрать фото (скоро)'),
             ),
             const SizedBox(height: 24),
 
@@ -110,6 +116,7 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
               controller: _nameCtrl,
               textInputAction: TextInputAction.next,
               textCapitalization: TextCapitalization.sentences,
+              maxLength: _maxNameLength,
               decoration: const InputDecoration(
                 labelText: 'Название',
                 hintText: 'Например: Монстера',
@@ -118,19 +125,28 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
               ),
               validator: (value) => (value == null || value.trim().isEmpty)
                   ? 'Название обязательно'
-                  : null, 
+                  : null,
             ),
             const SizedBox(height: 16),
 
             TextFormField(
               controller: _speciesCtrl,
               textInputAction: TextInputAction.next,
+              maxLength: _maxSpeciesLength,
               decoration: const InputDecoration(
-                labelText: 'Вид',
+                labelText: 'Вид (необязательно)',
                 hintText: 'Например: Monstera deliciosa',
                 prefixIcon: Icon(Icons.eco_outlined),
                 border: OutlineInputBorder(),
               ),
+              // Вид необязателен, но если указан — хотя бы 2 символа
+              validator: (value) {
+                final species = value?.trim() ?? '';
+                if (species.isNotEmpty && species.length < 2) {
+                  return 'Слишком короткое название вида';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
@@ -138,19 +154,26 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
               controller: _intervalCtrl,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 3, // больше 365 всё равно не пройдёт валидацию
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _save(),
               decoration: const InputDecoration(
                 labelText: 'Интервал полива',
-                hintText: 'Например: 7',
+                hintText: 'От $_minInterval до $_maxInterval',
                 prefixIcon: Icon(Icons.schedule),
                 suffixText: 'дн.',
                 border: OutlineInputBorder(),
+                counterText: '', // счётчик символов здесь не нужен
               ),
               validator: (value) {
                 final days = int.tryParse(value ?? '');
                 if (days == null) return 'Введите число дней';
-                if (days < 1) return 'Интервал должен быть не меньше 1 дня';
+                if (days < _minInterval) {
+                  return 'Интервал должен быть не меньше $_minInterval дня';
+                }
+                if (days > _maxInterval) {
+                  return 'Интервал должен быть не больше $_maxInterval дней';
+                }
                 return null;
               },
             ),

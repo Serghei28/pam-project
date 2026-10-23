@@ -9,6 +9,7 @@ import '../widgets/delete_background.dart';
 import '../widgets/delete_plant_dialog.dart';
 import '../widgets/error_view.dart';
 import '../widgets/plant_card.dart';
+import '../widgets/refresh_button.dart';
 
 class PlantsScreen extends StatelessWidget {
   const PlantsScreen({super.key});
@@ -35,6 +36,12 @@ class PlantsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Мои растения'),
         centerTitle: true,
+        actions: [
+          RefreshButton(
+            isLoading: model.isLoading,
+            onRefresh: () => context.read<PlantsModel>().load(),
+          ),
+        ],
       ),
       body: body,
       floatingActionButton: FloatingActionButton.extended(

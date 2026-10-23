@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'screens/login_screen.dart';
@@ -9,9 +10,16 @@ import 'screens/reminders_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/watering_journal_screen.dart';
 import 'widgets/app_shell.dart';
+import 'widgets/not_found_view.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
+  // Неизвестный адрес (например, /abc в браузере) — понятный экран
+  // вместо стандартной страницы ошибки go_router
+  errorBuilder: (context, state) => Scaffold(
+    appBar: AppBar(title: const Text('Страница не найдена')),
+    body: const NotFoundView(message: 'Такой страницы в приложении нет'),
+  ),
   routes: [
     GoRoute(
       path: '/splash',

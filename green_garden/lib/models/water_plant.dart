@@ -1,3 +1,4 @@
+import '../data/result.dart';
 import '../data/watering_log.dart';
 import 'plants_model.dart';
 import 'watering_log_model.dart';
@@ -14,10 +15,24 @@ Future<String?> waterPlant({
 }) async {
   final now = DateTime.now();
 
-  final logError = await logs.add(
+  // 1) Запись в журнал (id: 0 — временный, настоящий выдаст хранилище)
+  final WateringLog created;
+  switch (await logs.addEntry(
     WateringLog(id: 0, plantId: plantId, date: now, note: note),
-  ); // id: 0 — временный, настоящий выдаст хранилище
-  if (logError != null) return logError;
+  )) {
+    case Ok(:final value):
+      created = value;
+    case Err(:final msg):
+      return msg;
+  }
 
-  return plants.markWatered(plantId, at: now);
+  // 2) Новая дата полива у растения
+  final plantError = await plants.markWatered(plantId, at: now);
+  if (plantError != null) {
+    // Откат шага 1: журнал не должен говорить «полито»,
+    // если растение так и не обновилось.
+    await logs.remove(created.id);
+    return plantError;
+  }
+  return null;
 }
