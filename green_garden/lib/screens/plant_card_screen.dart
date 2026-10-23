@@ -112,11 +112,16 @@ class PlantCardScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           FilledButton.icon(
-            onPressed: () {
+            onPressed: () async {
               // read в callback-е: действие, без подписки
-              context.read<PlantsModel>().markWatered(plant.id);
+              final error =
+                  await context.read<PlantsModel>().markWatered(plant.id);
+              // экран мог закрыться, пока «запрос» летел
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Полив отмечен: ${plant.name}')),
+                SnackBar(
+                  content: Text(error ?? 'Полив отмечен: ${plant.name}'),
+                ),
               );
             },
             icon: const Icon(Icons.water_drop),

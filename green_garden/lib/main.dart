@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'data/mock_data.dart';
+import 'data/mock_plant_repository.dart';
 import 'models/plants_model.dart';
 import 'router.dart';
 
+// Корень композиции: ЗДЕСЬ (и только здесь) выбирается источник данных.
 void main() {
+  final plantRepository = MockPlantRepository(); // на L5: http-вариант
+
   runApp(
-    // Модель монтируется НАД router-ом: её видят все экраны.
-    // create — фабрика: Provider создаёт модель сам и сам вызовет dispose.
-    ChangeNotifierProvider(
-      create: (_) => PlantsModel(mockPlants),
-      child: const GreenGardenApp(),
+    MultiProvider(
+      providers: [
+        // Леса для переключателя «Симулировать сбой сети» — исчезнут на L5.
+        // Repository не ChangeNotifier, поэтому простой Provider.value.
+        Provider<MockPlantRepository>.value(value: plantRepository),
+        // Модель — через фабрику; ..load() запускает первую загрузку.
+        ChangeNotifierProvider(
+          create: (_) => PlantsModel(plantRepository)..load(),
+        ),
+      ],
+      child: const GreenGardenApp(), // MaterialApp.router — как на L3
     ),
   );
 }

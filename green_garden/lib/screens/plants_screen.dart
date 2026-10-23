@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/plant.dart';
 import '../models/plants_model.dart';
 import '../utils/dates.dart';
+import '../widgets/error_view.dart';
 import '../widgets/plant_card.dart';
 
 class PlantsScreen extends StatelessWidget {
@@ -11,47 +13,73 @@ class PlantsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // watch в build: при любом изменении модели список перерисуется
-    final plants = context.watch<PlantsModel>().plants;
+    // watch в build: при любом изменении модели экран перерисуется
+    final model = context.watch<PlantsModel>();
+
+    // Три состояния — все на виду
+    final Widget body;
+    if (model.isLoading) {
+      body = const Center(child: CircularProgressIndicator()); // 1) грузится
+    } else if (model.error != null) {
+      body = ErrorView(
+        message: model.error!, // 2) ошибка
+        onRetry: () => context.read<PlantsModel>().load(), // read: действие
+      );
+    } else {
+      body = _PlantList(plants: model.plants); // 3) данные
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Мои растения'),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: SearchBar(
-              hintText: 'Поиск растений',
-              leading: Icon(Icons.search),
-            ),
-          ),
-
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-              itemCount: plants.length,
-              itemBuilder: (context, index) {
-                final plant = plants[index];
-                return PlantCard(
-                  name: plant.name,
-                  species: plant.species,
-                  lastWatered: daysAgoText(plant.lastWateredAt),
-                  isWatered: !plant.needsWatering,
-                  onTap: () => context.push('/plants/${plant.id}'),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      body: body,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/plants/new'),
         icon: const Icon(Icons.add),
         label: const Text('Добавить'),
       ),
+    );
+  }
+}
+
+// Список растений с поиском (из L3)
+class _PlantList extends StatelessWidget {
+  final List<Plant> plants;
+
+  const _PlantList({required this.plants});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: SearchBar(
+            hintText: 'Поиск растений',
+            leading: Icon(Icons.search),
+          ),
+        ),
+        Expanded(
+          child: plants.isEmpty
+              ? const Center(child: Text('Растений пока нет'))
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                  itemCount: plants.length,
+                  itemBuilder: (context, index) {
+                    final plant = plants[index];
+                    return PlantCard(
+                      name: plant.name,
+                      species: plant.species,
+                      lastWatered: daysAgoText(plant.lastWateredAt),
+                      isWatered: !plant.needsWatering,
+                      onTap: () => context.push('/plants/${plant.id}'),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }
