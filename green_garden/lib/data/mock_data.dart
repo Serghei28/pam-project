@@ -1,4 +1,5 @@
 import 'plant.dart';
+import 'reminder.dart';
 import 'watering_log.dart';
 
 // Только seed-данные. Даты считаются от сегодняшнего дня,
@@ -130,5 +131,56 @@ final List<WateringLog> mockWateringLogs = [
     plantId: 1,
     date: _daysAgoAt(14, 8, 50),
     note: 'Добавила подкормку',
+  ),
+];
+
+// Напоминания об уходе (кроме полива — его срок считается из интервала).
+// Отрицательное число дней — срок уже прошёл.
+DateTime _inDays(int days) => DateTime.now().add(Duration(days: days));
+
+final List<Reminder> mockReminders = [
+  Reminder(
+    id: 1,
+    plantId: 1,
+    type: ReminderType.wipeLeaves,
+    dueDate: _inDays(3),
+  ),
+  Reminder(
+    id: 2,
+    plantId: 5,
+    type: ReminderType.fertilize,
+    dueDate: _inDays(5),
+  ),
+  Reminder(
+    id: 3,
+    plantId: 4,
+    type: ReminderType.repot,
+    dueDate: _inDays(12),
+  ),
+  Reminder(
+    id: 4,
+    plantId: 2,
+    type: ReminderType.spray,
+    dueDate: _inDays(-1),
+  ),
+  Reminder(
+    id: 5,
+    plantId: 8,
+    type: ReminderType.spray,
+    dueDate: _inDays(1),
+  ),
+  Reminder(
+    id: 6,
+    plantId: 3,
+    type: ReminderType.fertilize,
+    dueDate: _inDays(-3),
+    isDone: true,
+  ),
+  Reminder(
+    id: 7,
+    plantId: 6,
+    type: ReminderType.wipeLeaves,
+    dueDate: _inDays(-5),
+    isDone: true,
   ),
 ];

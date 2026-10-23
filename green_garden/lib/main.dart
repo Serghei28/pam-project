@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'data/mock_plant_repository.dart';
+import 'data/mock_reminder_repository.dart';
 import 'data/mock_watering_log_repository.dart';
 import 'models/plants_model.dart';
+import 'models/reminder_model.dart';
 import 'models/watering_log_model.dart';
 import 'router.dart';
 
@@ -11,6 +13,7 @@ import 'router.dart';
 void main() {
   final plantRepository = MockPlantRepository(); // на L5: http-варианты
   final wateringLogRepository = MockWateringLogRepository();
+  final reminderRepository = MockReminderRepository();
 
   runApp(
     MultiProvider(
@@ -21,12 +24,16 @@ void main() {
         Provider<MockWateringLogRepository>.value(
           value: wateringLogRepository,
         ),
+        Provider<MockReminderRepository>.value(value: reminderRepository),
         // Модель — через фабрику; ..load() запускает первую загрузку.
         ChangeNotifierProvider(
           create: (_) => PlantsModel(plantRepository)..load(),
         ),
         ChangeNotifierProvider(
           create: (_) => WateringLogModel(wateringLogRepository)..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ReminderModel(reminderRepository)..load(),
         ),
       ],
       child: const GreenGardenApp(), // MaterialApp.router — как на L3
