@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../data/mock_data.dart';
+import '../models/plants_model.dart';
 import '../utils/dates.dart';
 import '../widgets/section_title.dart';
 import '../widgets/status_badge.dart';
@@ -15,9 +16,9 @@ class PlantCardScreen extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // firstOrNull вернёт null, если растения с таким id нет
-    // (firstWhere в этом случае выбрасывал бы StateError)
-    final plant = mockPlants.where((p) => p.id == id).firstOrNull;
+    // watch в build: после «Отметить полив» карточка обновится сама.
+    // byId вернёт null, если растения с таким id нет.
+    final plant = context.watch<PlantsModel>().byId(id);
 
     if (plant == null) {
       return Scaffold(
@@ -112,6 +113,8 @@ class PlantCardScreen extends StatelessWidget {
 
           FilledButton.icon(
             onPressed: () {
+              // read в callback-е: действие, без подписки
+              context.read<PlantsModel>().markWatered(plant.id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Полив отмечен: ${plant.name}')),
               );

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-import '../data/mock_data.dart';
+import '../models/plants_model.dart';
 import '../utils/dates.dart';
 import '../widgets/plant_card.dart';
 
@@ -10,6 +11,9 @@ class PlantsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // watch в build: при любом изменении модели список перерисуется
+    final plants = context.watch<PlantsModel>().plants;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Мои растения'),
@@ -28,9 +32,9 @@ class PlantsScreen extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-              itemCount: mockPlants.length,
+              itemCount: plants.length,
               itemBuilder: (context, index) {
-                final plant = mockPlants[index];
+                final plant = plants[index];
                 return PlantCard(
                   name: plant.name,
                   species: plant.species,

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../models/plants_model.dart';
 
 class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -20,8 +23,8 @@ class AppShell extends StatelessWidget {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.local_florist_outlined),
-            selectedIcon: Icon(Icons.local_florist),
+            icon: _DueBadge(child: Icon(Icons.local_florist_outlined)),
+            selectedIcon: _DueBadge(child: Icon(Icons.local_florist)),
             label: 'Растения',
           ),
           NavigationDestination(
@@ -41,6 +44,27 @@ class AppShell extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Бейдж «сколько растений пора полить».
+// Consumer — один «живой угол»: при notifyListeners перерисовывается
+// только бейдж, а не весь AppShell.
+class _DueBadge extends StatelessWidget {
+  final Widget child;
+
+  const _DueBadge({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PlantsModel>(
+      builder: (context, model, child) => Badge(
+        isLabelVisible: model.dueCount > 0,
+        label: Text('${model.dueCount}'),
+        child: child,
+      ),
+      child: child,
     );
   }
 }
