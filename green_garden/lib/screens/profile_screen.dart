@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../models/plants_model.dart';
+import '../models/reminder_model.dart';
+import '../models/watering_log_model.dart';
+import '../widgets/error_view.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -68,21 +74,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          const Row(
-            children: [
-              Expanded(
-                child: _StatCard(value: '8', label: 'Растений'),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(value: '24', label: 'Поливов'),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: _StatCard(value: '6', label: 'Напоминаний'),
-              ),
-            ],
-          ),
+          const _Stats(),
           const SizedBox(height: 24),
 
           const Card(
@@ -120,6 +112,62 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Статистика считается из моделей — цифр в коде больше нет
+class _Stats extends StatelessWidget {
+  const _Stats();
+
+  @override
+  Widget build(BuildContext context) {
+    final plants = context.watch<PlantsModel>();
+    final logs = context.watch<WateringLogModel>();
+    final reminders = context.watch<ReminderModel>();
+
+    // 1) грузится — пока хотя бы одна модель загружается
+    if (plants.isLoading || logs.isLoading || reminders.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // 2) ошибка — «Повторить» перезагружает только упавшие модели
+    final error = plants.error ?? logs.error ?? reminders.error;
+    if (error != null) {
+      return ErrorView(
+        message: error,
+        onRetry: () {
+          if (plants.error != null) context.read<PlantsModel>().load();
+          if (logs.error != null) context.read<WateringLogModel>().load();
+          if (reminders.error != null) context.read<ReminderModel>().load();
+        },
+      );
+    }
+
+    // 3) данные
+    return Row(
+      children: [
+        Expanded(
+          child: _StatCard(
+            value: '${plants.plants.length}',
+            label: 'Растений',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatCard(value: '${logs.logs.length}', label: 'Поливов'),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatCard(
+            value: '${plants.dueCount + reminders.pending.length}',
+            label: 'Дел по уходу',
+          ),
+        ),
+      ],
     );
   }
 }
