@@ -63,9 +63,9 @@ class PlantsModel extends ChangeNotifier {
   }
 
   // Отметить полив = обновить дату последнего полива через хранилище
-  Future<String?> markWatered(int id) async {
+  Future<String?> markWatered(int id, {DateTime? at}) async {
     final plant = byId(id);
     if (plant == null) return 'Растение не существует';
-    return update(plant.copyWith(lastWateredAt: DateTime.now()));
+    return update(plant.copyWith(lastWateredAt: at ?? DateTime.now()));
   }
 }

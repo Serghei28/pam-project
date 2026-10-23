@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/plants_model.dart';
+import '../models/water_plant.dart';
+import '../models/watering_log_model.dart';
 import '../utils/dates.dart';
 import '../widgets/error_view.dart';
 import '../widgets/section_title.dart';
@@ -133,9 +135,13 @@ class PlantCardScreen extends StatelessWidget {
 
           FilledButton.icon(
             onPressed: () async {
-              // read в callback-е: действие, без подписки
-              final error =
-                  await context.read<PlantsModel>().markWatered(plant.id);
+              // read в callback-е: действие, без подписки.
+              // Полив пишет и в журнал, и дату у растения.
+              final error = await waterPlant(
+                plants: context.read<PlantsModel>(),
+                logs: context.read<WateringLogModel>(),
+                plantId: plant.id,
+              );
               // экран мог закрыться, пока «запрос» летел
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -152,29 +158,7 @@ class PlantCardScreen extends StatelessWidget {
           ),
 
           const SectionTitle('История поливов'),
-          const Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.water_drop_outlined),
-                  title: Text('7 октября 2026, 09:00'),
-                  subtitle: Text('Земля была сухая'),
-                ),
-                Divider(height: 1),
-                ListTile(
-                  leading: Icon(Icons.water_drop_outlined),
-                  title: Text('30 сентября 2026, 09:15'),
-                  subtitle: Text('Полила в обычном режиме'),
-                ),
-                Divider(height: 1),
-                ListTile(
-                  leading: Icon(Icons.water_drop_outlined),
-                  title: Text('23 сентября 2026, 08:50'),
-                  subtitle: Text('Добавила подкормку'),
-                ),
-              ],
-            ),
-          ),
+          _WateringHistory(plantId: plant.id),
 
           const SectionTitle('Напоминания'),
           Card(
@@ -232,6 +216,53 @@ class _InfoCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// История поливов растения — из WateringLogModel, с тремя состояниями
+class _WateringHistory extends StatelessWidget {
+  final int plantId;
+
+  const _WateringHistory({required this.plantId});
+
+  @override
+  Widget build(BuildContext context) {
+    final model = context.watch<WateringLogModel>();
+
+    if (model.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (model.error != null) {
+      return ErrorView(
+        message: model.error!,
+        onRetry: () => context.read<WateringLogModel>().load(),
+      );
+    }
+
+    final logs = model.logsForPlant(plantId);
+    if (logs.isEmpty) {
+      return const Card(
+        child: ListTile(title: Text('Поливов пока не было')),
+      );
+    }
+
+    return Card(
+      child: Column(
+        children: [
+          for (final (i, log) in logs.indexed) ...[
+            if (i > 0) const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.water_drop_outlined),
+              title: Text(formatDateTime(log.date)),
+              subtitle: log.note.isEmpty ? null : Text(log.note),
+            ),
+          ],
+        ],
       ),
     );
   }

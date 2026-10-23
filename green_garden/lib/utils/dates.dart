@@ -20,3 +20,14 @@ String daysAgoText(DateTime date) {
   if (days > 1) return '$days дн. назад';
   return formatDate(date); // дата в будущем
 }
+
+// 09:05
+String formatTime(DateTime date) {
+  final hh = date.hour.toString().padLeft(2, '0');
+  final mm = date.minute.toString().padLeft(2, '0');
+  return '$hh:$mm';
+}
+
+// 14 окт. 2026, 09:05
+String formatDateTime(DateTime date) =>
+    '${formatDate(date)}, ${formatTime(date)}';
