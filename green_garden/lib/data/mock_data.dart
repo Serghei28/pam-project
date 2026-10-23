@@ -1,4 +1,5 @@
 import 'plant.dart';
+import 'watering_log.dart';
 
 // Только seed-данные. Даты считаются от сегодняшнего дня,
 // поэтому статусы «полито / пора поливать» верны при любом запуске.
@@ -60,5 +61,74 @@ final List<Plant> mockPlants = [
     species: 'Spathiphyllum wallisii',
     wateringIntervalDays: 4,
     lastWateredAt: _daysAgo(2),
+  ),
+];
+
+// Журнал полива. Последние записи совпадают с lastWateredAt растений.
+DateTime _daysAgoAt(int days, int hour, int minute) {
+  final d = DateTime.now().subtract(Duration(days: days));
+  return DateTime(d.year, d.month, d.day, hour, minute);
+}
+
+final List<WateringLog> mockWateringLogs = [
+  WateringLog(
+    id: 1,
+    plantId: 1,
+    date: _daysAgoAt(0, 9, 0),
+    note: 'Земля была сухая',
+  ),
+  WateringLog(
+    id: 2,
+    plantId: 5,
+    date: _daysAgoAt(1, 18, 30),
+    note: 'Немного, как обычно',
+  ),
+  WateringLog(
+    id: 3,
+    plantId: 8,
+    date: _daysAgoAt(2, 8, 45),
+    note: 'Листья немного поникли',
+  ),
+  WateringLog(
+    id: 4,
+    plantId: 3,
+    date: _daysAgoAt(3, 10, 15),
+    note: 'Совсем чуть-чуть',
+  ),
+  WateringLog(
+    id: 5,
+    plantId: 7,
+    date: _daysAgoAt(5, 9, 30),
+    note: 'Опрыскала листья',
+  ),
+  WateringLog(
+    id: 6,
+    plantId: 2,
+    date: _daysAgoAt(6, 8, 45),
+    note: 'Листья слегка опали',
+  ),
+  WateringLog(
+    id: 7,
+    plantId: 1,
+    date: _daysAgoAt(7, 9, 15),
+    note: 'Полила в обычном режиме',
+  ),
+  WateringLog(
+    id: 8,
+    plantId: 4,
+    date: _daysAgoAt(8, 19, 0),
+    note: 'Полив погружением',
+  ),
+  WateringLog(
+    id: 9,
+    plantId: 6,
+    date: _daysAgoAt(10, 12, 0),
+    note: 'Добавила подкормку',
+  ),
+  WateringLog(
+    id: 10,
+    plantId: 1,
+    date: _daysAgoAt(14, 8, 50),
+    note: 'Добавила подкормку',
   ),
 ];

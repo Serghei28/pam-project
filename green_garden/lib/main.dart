@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'data/mock_plant_repository.dart';
+import 'data/mock_watering_log_repository.dart';
 import 'models/plants_model.dart';
+import 'models/watering_log_model.dart';
 import 'router.dart';
 
 // Корень композиции: ЗДЕСЬ (и только здесь) выбирается источник данных.
 void main() {
-  final plantRepository = MockPlantRepository(); // на L5: http-вариант
+  final plantRepository = MockPlantRepository(); // на L5: http-варианты
+  final wateringLogRepository = MockWateringLogRepository();
 
   runApp(
     MultiProvider(
@@ -15,9 +18,15 @@ void main() {
         // Леса для переключателя «Симулировать сбой сети» — исчезнут на L5.
         // Repository не ChangeNotifier, поэтому простой Provider.value.
         Provider<MockPlantRepository>.value(value: plantRepository),
+        Provider<MockWateringLogRepository>.value(
+          value: wateringLogRepository,
+        ),
         // Модель — через фабрику; ..load() запускает первую загрузку.
         ChangeNotifierProvider(
           create: (_) => PlantsModel(plantRepository)..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WateringLogModel(wateringLogRepository)..load(),
         ),
       ],
       child: const GreenGardenApp(), // MaterialApp.router — как на L3
