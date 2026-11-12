@@ -12,7 +12,13 @@ import 'screens/watering_journal_screen.dart';
 import 'widgets/app_shell.dart';
 import 'widgets/not_found_view.dart';
 
-final router = GoRouter(
+// Router строит main(): сначала он асинхронно читает token (C9),
+// поэтому здесь late final, а не final с инициализатором.
+late final GoRouter router;
+
+// Маршруты L3 без изменений; меняется только то, куда ведёт заставка:
+// есть token → сразу список, нет → экран входа.
+GoRouter createRouter({required bool loggedIn}) => GoRouter(
   initialLocation: '/splash',
   // Неизвестный адрес (например, /abc в браузере) — понятный экран
   // вместо стандартной страницы ошибки go_router
@@ -23,7 +29,8 @@ final router = GoRouter(
   routes: [
     GoRoute(
       path: '/splash',
-      builder: (context, state) => const SplashScreen(),
+      builder: (context, state) =>
+          SplashScreen(next: loggedIn ? '/plants' : '/login'),
     ),
     GoRoute(
       path: '/login',

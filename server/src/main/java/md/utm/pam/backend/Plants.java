@@ -178,7 +178,7 @@ public class Plants {
 
 	/**
 	 * DELETE /plants/{id} -> 204 | 404. Cascade: the plant's watering logs
-	 * go with it (SQLite does not enforce REFERENCES by default).
+	 * and reminders go with it (SQLite does not enforce REFERENCES by default).
 	 */
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
@@ -186,6 +186,7 @@ public class Plants {
 			@PathVariable long id) {
 		find(userId, id); // 404 before deleting
 		db.jdbc.update("DELETE FROM watering_logs WHERE plant_id = ?", id);
+		db.jdbc.update("DELETE FROM reminders WHERE plant_id = ?", id);
 		db.jdbc.update("DELETE FROM plants WHERE id = ?", id);
 	}
 

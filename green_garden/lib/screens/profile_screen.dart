@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/auth_api.dart';
 import '../data/mock_plant_repository.dart';
 import '../data/mock_reminder_repository.dart';
 import '../data/mock_watering_log_repository.dart';
@@ -57,9 +58,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
 
-    if (ok == true && context.mounted) {
-      context.go('/login'); // go: раздел с вкладками уходит из стека
-    }
+    if (ok != true || !context.mounted) return;
+    await context.read<AuthApi>().logout(); // token стирается из prefs (C9)
+    if (!context.mounted) return;
+    context.go('/login'); // go: раздел с вкладками уходит из стека
   }
 
   @override

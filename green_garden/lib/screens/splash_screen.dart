@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, required this.next});
+
+  // Куда идти после заставки — решает корень по token-у
+  final String next;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -14,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      context.go('/login');
+      context.go(widget.next);
     });
   }
 

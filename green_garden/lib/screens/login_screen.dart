@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../data/auth_api.dart';
+import '../data/result.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLogin = true;
 
+  // Запрос летит — кнопка погашена: двойной submit = классический сетевой bug.
+  // Эфемерное состояние экрана → setState.
+  bool _busy = false;
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -24,10 +32,38 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+  void _toggleMode() {
+    setState(() {
+      _isLogin = !_isLogin;
+    });
+    _formKey.currentState?.reset();
+  }
 
-    context.go('/plants');
+  // Валидный submit бьёт по серверу: вердикт → навигация или SnackBar
+  Future<void> _submit() async {
+    if (_busy) return;
+    if (!_formKey.currentState!.validate()) return; // валидация L3, нетронута
+
+    final auth = context.read<AuthApi>();
+    setState(() => _busy = true);
+    final result = _isLogin
+        ? await auth.login(_emailCtrl.text.trim(), _passwordCtrl.text)
+        : await auth.register(
+            _emailCtrl.text.trim(),
+            _passwordCtrl.text,
+            _nameCtrl.text.trim(),
+          );
+    if (!mounted) return; // экран может умереть, пока запрос летит
+    setState(() => _busy = false);
+
+    switch (result) {
+      case Ok():
+        context.go('/plants'); // token сохранён — входим в список
+      case Err(:final msg):
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+    }
   }
 
   @override
@@ -126,21 +162,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
 
                     FilledButton(
-                      onPressed: _submit,
+                      onPressed: _busy ? null : _submit,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: Text(_isLogin ? 'Войти' : 'Зарегистрироваться'),
+                        child: _busy
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(_isLogin ? 'Войти' : 'Зарегистрироваться'),
                       ),
                     ),
                     const SizedBox(height: 12),
 
                     TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _isLogin = !_isLogin;
-                        });
-                        _formKey.currentState?.reset();
-                      },
+                      onPressed: _busy ? null : _toggleMode,
                       child: Text(
                         _isLogin
                             ? 'Нет аккаунта? Зарегистрироваться'

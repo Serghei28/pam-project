@@ -60,6 +60,18 @@ public class Db {
 				  note       TEXT    NOT NULL DEFAULT '',
 				  created_at TEXT    NOT NULL
 				)""");
+		// GreenGarden: care reminders (wipe leaves, fertilize, ...) of a plant.
+		// is_done: 0/1 (SQLite has no boolean type).
+		jdbc.execute("""
+				CREATE TABLE IF NOT EXISTS reminders (
+				  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+				  user_id    INTEGER NOT NULL REFERENCES users (id),
+				  plant_id   INTEGER NOT NULL REFERENCES plants (id),
+				  type       TEXT    NOT NULL,
+				  due_date   TEXT    NOT NULL,
+				  is_done    INTEGER NOT NULL DEFAULT 0,
+				  created_at TEXT    NOT NULL
+				)""");
 		jdbc.execute("""
 				CREATE TABLE IF NOT EXISTS files (
 				  id         INTEGER PRIMARY KEY AUTOINCREMENT,
