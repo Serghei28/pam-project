@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'data/api_client.dart';
 import 'data/auth_api.dart';
+import 'data/files_api.dart';
 import 'data/http_plant_repository.dart';
 import 'data/http_reminder_repository.dart';
 import 'data/http_watering_log_repository.dart';
@@ -44,6 +45,8 @@ Future<void> main() async {
       providers: [
         // register/login/logout; его читает экран входа и профиль
         Provider<AuthApi>(create: (_) => AuthApi(apiBase, tokens)),
+        // загрузка фото (POST /files) и адреса для Image.network
+        Provider<FilesApi>(create: (_) => FilesApi(api)),
         // Модель — через фабрику; ..load() запускает первую загрузку.
         ChangeNotifierProvider(
           create: (_) => PlantsModel(plantRepository)..load(),

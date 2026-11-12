@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/files_api.dart';
 import '../data/plant.dart';
 import '../models/plants_model.dart';
 import '../models/reminder_model.dart';
@@ -67,7 +68,7 @@ class PlantCardScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const _PlantPhoto(),
+          _PlantPhoto(photoUrl: plant.photoUrl),
           const SizedBox(height: 16),
           _PlantHeader(plant: plant),
           const SizedBox(height: 16),
@@ -115,25 +116,41 @@ class _DeleteButton extends StatelessWidget {
   }
 }
 
-// Фото растения (пока иконка — загрузка фото появится на L5)
+// Фото растения (L5): с сервера через Image.network, иначе иконка
 class _PlantPhoto extends StatelessWidget {
-  const _PlantPhoto();
+  final String? photoUrl;
+
+  const _PlantPhoto({required this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final placeholder = Icon(
+      Icons.local_florist,
+      size: 96,
+      color: colors.onPrimaryContainer,
+    );
+    final url = photoUrl;
 
     return Container(
       height: 200,
+      clipBehavior: Clip.antiAlias, // скругление и для фото
       decoration: BoxDecoration(
         color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(
-        Icons.local_florist,
-        size: 96,
-        color: colors.onPrimaryContainer,
-      ),
+      child: url == null
+          ? placeholder
+          : Image.network(
+              // GET /files/{id} публичный — заголовок с token-ом не нужен
+              context.read<FilesApi>().imageUrl(url),
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, progress) => progress == null
+                  ? child
+                  : const Center(child: CircularProgressIndicator()),
+              // сервер недоступен / файла нет — иконка, а не красный экран
+              errorBuilder: (context, error, stack) => placeholder,
+            ),
     );
   }
 }

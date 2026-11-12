@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../data/files_api.dart';
 import '../data/plant.dart';
+import '../data/result.dart';
 import '../models/plants_model.dart';
 
 // Ограничения полей формы
@@ -26,6 +29,28 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
   final _intervalCtrl = TextEditingController();
   bool _saving = false; // эфемерное состояние формы → setState
 
+  // Выбранное фото (L5): байты для превью и для POST /files при сохранении
+  Uint8List? _photoBytes;
+  String _photoName = '';
+  String? _photoMime;
+
+  Future<void> _pickPhoto() async {
+    // Сжатие на стороне клиента: держимся далеко от лимита 5 МБ
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
+    if (file == null) return; // пользователь передумал
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      _photoBytes = bytes;
+      _photoName = file.name;
+      _photoMime = file.mimeType;
+    });
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -40,16 +65,42 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
     if (_saving) return; // уже сохраняем — повторный submit игнорируем
     if (!_formKey.currentState!.validate()) return;
 
+    final plants = context.read<PlantsModel>();
+    final files = context.read<FilesApi>();
+    setState(() => _saving = true);
+
+    // 1) Фото выбрано → сначала POST /files; растению достаётся его url
+    String? photoUrl;
+    final bytes = _photoBytes;
+    if (bytes != null) {
+      final uploaded = await files.upload(
+        bytes,
+        _photoName,
+        mimeType: _photoMime,
+      );
+      if (!mounted) return;
+      switch (uploaded) {
+        case Ok(:final value):
+          photoUrl = value;
+        case Err(:final msg):
+          setState(() => _saving = false);
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(msg)));
+          return; // растение без обещанного фото не создаём
+      }
+    }
+
+    // 2) Само растение
     final draft = Plant(
       id: 0, // временный id — настоящий выдаст хранилище (на L5: сервер)
       name: _nameCtrl.text.trim(),
       species: _speciesCtrl.text.trim(),
       wateringIntervalDays: int.parse(_intervalCtrl.text),
       lastWateredAt: DateTime.now(), // новое растение считаем политым сегодня
+      photoUrl: photoUrl,
     );
 
-    setState(() => _saving = true);
-    final error = await context.read<PlantsModel>().add(draft);
+    final error = await plants.add(draft);
     if (!mounted) return; // экран мог закрыться, пока «запрос» летел
     setState(() => _saving = false);
 
@@ -82,33 +133,38 @@ class _PlantFormScreenState extends State<PlantFormScreen> {
           children: [
             Container(
               height: 180,
+              clipBehavior: Clip.antiAlias, // скругление и для фото
               decoration: BoxDecoration(
                 color: colors.primaryContainer,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add_a_photo_outlined,
-                    size: 56,
-                    color: colors.onPrimaryContainer,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Фото растения',
-                    style: TextStyle(color: colors.onPrimaryContainer),
-                  ),
-                ],
-              ),
+              // Превью выбранного фото — из памяти, до загрузки на сервер
+              child: _photoBytes != null
+                  ? Image.memory(_photoBytes!, fit: BoxFit.cover)
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_a_photo_outlined,
+                          size: 56,
+                          color: colors.onPrimaryContainer,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Фото растения',
+                          style: TextStyle(color: colors.onPrimaryContainer),
+                        ),
+                      ],
+                    ),
             ),
             const SizedBox(height: 12),
-            // Выбор фото появится вместе с загрузкой файлов на backend (L5),
-            // поэтому сейчас кнопка честно неактивна.
+            // L5: фото уходит на backend (POST /files) при сохранении
             OutlinedButton.icon(
-              onPressed: null,
+              onPressed: _saving ? null : _pickPhoto,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Выбрать фото (скоро)'),
+              label: Text(
+                _photoBytes == null ? 'Выбрать фото' : 'Выбрать другое фото',
+              ),
             ),
             const SizedBox(height: 24),
 

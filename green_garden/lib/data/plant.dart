@@ -9,12 +9,16 @@ class Plant {
   final int wateringIntervalDays;
   final DateTime lastWateredAt;
 
+  // Адрес фото на сервере (/files/{id}) после POST /files; null — без фото
+  final String? photoUrl;
+
   const Plant({
     required this.id,
     required this.name,
     required this.species,
     required this.wateringIntervalDays,
     required this.lastWateredAt,
+    this.photoUrl,
   });
 
   // Граница JSON (L5). Сервер хранит время в UTC (ISO-8601), а расчёт
@@ -25,14 +29,18 @@ class Plant {
     species: j['species'] as String? ?? '',
     wateringIntervalDays: (j['wateringIntervalDays'] as num).toInt(),
     lastWateredAt: DateTime.parse(j['lastWateredAt'] as String).toLocal(),
+    photoUrl: j['photoUrl'] as String?,
   );
 
-  // Без id — идентичность даёт сервер (C8)
+  // Без id — идентичность даёт сервер (C8).
+  // photoUrl уходит и в PUT: PUT заменяет запись целиком, без него
+  // «Отметить полив» стёр бы фото на сервере.
   Map<String, dynamic> toJson() => {
     'name': name,
     'species': species,
     'wateringIntervalDays': wateringIntervalDays,
     'lastWateredAt': lastWateredAt.toUtc().toIso8601String(),
+    'photoUrl': photoUrl,
   };
 
   // Дата следующего полива = дата последнего полива + интервал (в днях)
@@ -50,6 +58,7 @@ class Plant {
     String? species,
     int? wateringIntervalDays,
     DateTime? lastWateredAt,
+    String? photoUrl,
   }) {
     return Plant(
       id: id ?? this.id,
@@ -57,6 +66,7 @@ class Plant {
       species: species ?? this.species,
       wateringIntervalDays: wateringIntervalDays ?? this.wateringIntervalDays,
       lastWateredAt: lastWateredAt ?? this.lastWateredAt,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 }
