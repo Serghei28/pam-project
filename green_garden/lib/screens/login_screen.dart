@@ -64,7 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
         // Модели живут в корне и переживают logout: перезагружаем их под
         // новым token-ом — иначе после смены аккаунта видны чужие данные,
         // а после «Сессия истекла» — старый экран ошибки.
-        context.read<PlantsModel>().load();
+        // search: '' — фильтр поиска от прошлого входа не переносится
+        context.read<PlantsModel>().load(search: '');
         context.read<WateringLogModel>().load();
         context.read<ReminderModel>().load();
         context.go('/plants'); // token сохранён — входим в список

@@ -21,8 +21,19 @@ class HttpPlantRepository implements PlantRepository {
       Plant.fromJson(jsonDecode(body) as Map<String, dynamic>);
 
   @override
-  Future<Result<List<Plant>>> fetchAll() => withNetworkErrors(() async {
-    final res = await _api.get(_api.uri('/plants')); // GET /plants
+  Future<Result<List<Plant>>> fetchAll({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) => withNetworkErrors(() async {
+    // GET /plants?page=&limit=&search= — адрес получает query params
+    final res = await _api.get(
+      _api.uri('/plants', {
+        'page': '$page',
+        'limit': '$limit',
+        if (search != null && search.isNotEmpty) 'search': search,
+      }),
+    );
     if (res.statusCode == 401) return Err(await _api.sessionDied());
     if (res.statusCode != 200) return Err(apiMessage(res)); // слой 2
     final data = jsonDecode(res.body) as Map<String, dynamic>; // конверт!

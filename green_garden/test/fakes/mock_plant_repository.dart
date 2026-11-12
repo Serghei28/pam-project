@@ -16,10 +16,22 @@ class MockPlantRepository with MockNetwork implements PlantRepository {
   static const _errNotFound = 'Растение не существует';
 
   @override
-  Future<Result<List<Plant>>> fetchAll() async {
+  Future<Result<List<Plant>>> fetchAll({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) async {
     final error = await simulateNetwork();
     if (error != null) return Err(error);
-    return Ok(List.of(_plants)); // копия — внутренний список не отдаём
+    // Как сервер: поиск по названию и виду, затем ломоть страницы
+    final query = search?.toLowerCase() ?? '';
+    final found = _plants.where(
+      (p) =>
+          p.name.toLowerCase().contains(query) ||
+          p.species.toLowerCase().contains(query),
+    );
+    // копия — внутренний список не отдаём
+    return Ok(found.skip((page - 1) * limit).take(limit).toList());
   }
 
   @override

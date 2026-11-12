@@ -12,7 +12,14 @@ import 'result.dart';
 // update(plant)         -> PUT    /plants/{id}
 // delete(id)            -> DELETE /plants/{id}   (204, пустое тело)
 abstract class PlantRepository {
-  Future<Result<List<Plant>>> fetchAll();
+  // L5: интерфейс растёт совместимо — опциональные именованные параметры.
+  // Старый вызов fetchAll() компилируется без изменений.
+  // GET /plants?page=&limit=&search= — поиск и ломти делает СЕРВЕР.
+  Future<Result<List<Plant>>> fetchAll({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  });
 
   Future<Result<Plant>> fetchById(int id);
 

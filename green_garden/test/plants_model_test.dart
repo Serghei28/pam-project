@@ -58,4 +58,45 @@ void main() {
     expect(await model.remove(1), isNull);
     expect(model.byId(1), isNull);
   });
+
+  // ---- L5: поиск и пагинация ----
+
+  // Хранилище с seed (8) + extra растений — чтобы было больше одной страницы
+  Future<PlantsModel> modelWithPlants(int extra) async {
+    final repo = fastPlantRepo();
+    for (var i = 0; i < extra; i++) {
+      await repo.create(mockPlants.first.copyWith(id: 0, name: 'Кактус $i'));
+    }
+    return PlantsModel(repo);
+  }
+
+  test('load(search:) отдаёт фильтр хранилищу и помнит его для retry',
+      () async {
+    final model = PlantsModel(fastPlantRepo());
+    await model.load(search: 'алоэ');
+    expect(model.plants.map((p) => p.name), ['Алоэ вера']);
+    await model.load(); // retry / «Обновить» — фильтр сохранён
+    expect(model.plants, hasLength(1));
+    await model.load(search: ''); // сброс фильтра
+    expect(model.plants, hasLength(mockPlants.length));
+  });
+
+  test('loadMore приклеивает следующую страницу, пока она полная', () async {
+    final model = await modelWithPlants(17); // 8 + 17 = 25 растений
+    await model.load();
+    expect(model.plants, hasLength(PlantsModel.pageSize));
+    expect(model.hasMore, isTrue); // полная страница → видимо, есть ещё
+
+    await model.loadMore();
+    expect(model.plants, hasLength(25));
+    expect(model.plants.map((p) => p.id).toSet(), hasLength(25)); // без дублей
+    expect(model.hasMore, isFalse); // неполная страница → конец
+  });
+
+  test('loadMore: guard — повторный вызов не тянет страницу дважды', () async {
+    final model = await modelWithPlants(17);
+    await model.load();
+    await Future.wait([model.loadMore(), model.loadMore(), model.loadMore()]);
+    expect(model.plants, hasLength(25));
+  });
 }

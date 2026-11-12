@@ -31,20 +31,90 @@ class PlantsModel extends ChangeNotifier {
   // Поиск в загруженном списке; null — если такого растения нет
   Plant? byId(int id) => _plants.where((p) => p.id == id).firstOrNull;
 
-  Future<void> load() async {
+  // ---- L5: поиск и ломти (пагинация на сервере) ----
+  static const pageSize = 20;
+
+  String _search = ''; // фильтр переживает retry и «Обновить»
+  int _page = 1; // сколько страниц уже приклеено
+  bool _hasMore = false;
+  bool _loadingMore = false;
+  String? _loadMoreError;
+  int _generation = 0; // номер текущего load(): старые ломти отбрасываются
+
+  String get search => _search;
+
+  // Полная страница → видимо, есть ещё (эвристики на лабе достаточно)
+  bool get hasMore => _hasMore;
+
+  // Ошибка догрузки хвоста: список остаётся, хвост предлагает «Повторить»
+  String? get loadMoreError => _loadMoreError;
+
+  // search: null — оставить текущий фильтр, '' — сбросить
+  Future<void> load({String? search}) async {
+    _search = search ?? _search;
+    _page = 1;
+    _hasMore = false;
+    _loadMoreError = null;
+    final generation = ++_generation;
     _loading = true;
     _error = null;
     notifyListeners(); // экраны входят в состояние «грузится»
 
-    switch (await _repository.fetchAll()) {
+    final result = await _repository.fetchAll(
+      page: 1,
+      limit: pageSize,
+      search: _search,
+    );
+    if (generation != _generation) return; // уже запущен новый load()
+
+    switch (result) {
       case Ok(:final value):
         _plants = value;
+        _hasMore = value.length == pageSize;
       case Err(:final msg):
         _error = msg;
     }
 
     _loading = false;
     notifyListeners(); // …и выходят: с данными или с ошибкой
+  }
+
+  // Следующая страница ПРИКЛЕИВАЕТСЯ к списку.
+  // Вызывается из itemBuilder, в разгар build: синхронный notifyListeners()
+  // здесь бросил бы «setState() or markNeedsBuild() called during build»,
+  // поэтому _loadingMore = true ставится БЕЗ извещения (spinner хвоста
+  // уже на экране через hasMore). Guard — иначе дублированные страницы.
+  Future<void> loadMore() async {
+    if (_loadingMore || _loading || !_hasMore || _loadMoreError != null) {
+      return;
+    }
+    _loadingMore = true;
+    final generation = _generation;
+
+    final result = await _repository.fetchAll(
+      page: _page + 1,
+      limit: pageSize,
+      search: _search,
+    );
+    _loadingMore = false;
+    if (generation != _generation) return; // за это время был новый load()
+
+    switch (result) {
+      case Ok(:final value):
+        _page += 1;
+        _plants = [..._plants, ...value];
+        _hasMore = value.length == pageSize;
+      case Err(:final msg):
+        _loadMoreError = msg;
+    }
+    notifyListeners();
+  }
+
+  // «Повторить» в хвосте списка (callback — извещать можно)
+  void retryLoadMore() {
+    _loadMoreError = null;
+    notifyListeners();
+    loadMore();
   }
 
   // Мутации возвращают null при успехе или текст ошибки (как validator).
