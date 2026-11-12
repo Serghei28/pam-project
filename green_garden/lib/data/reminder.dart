@@ -28,6 +28,30 @@ class Reminder {
     this.isDone = false,
   });
 
+  // Граница JSON (L5). type на проводе — имя значения enum (spray, repot…);
+  // незнакомое имя — тело вне контракта → FormatException, как у jsonDecode.
+  factory Reminder.fromJson(Map<String, dynamic> j) {
+    final typeName = j['type'] as String;
+    final type =
+        ReminderType.values.asNameMap()[typeName] ??
+        (throw FormatException('Неизвестный тип напоминания: $typeName'));
+    return Reminder(
+      id: j['id'] as int,
+      plantId: j['plantId'] as int,
+      type: type,
+      dueDate: DateTime.parse(j['dueDate'] as String).toLocal(),
+      isDone: j['isDone'] as bool? ?? false,
+    );
+  }
+
+  // Без id — идентичность даёт сервер
+  Map<String, dynamic> toJson() => {
+    'plantId': plantId,
+    'type': type.name,
+    'dueDate': dueDate.toUtc().toIso8601String(),
+    'isDone': isDone,
+  };
+
   // Просрочено: не выполнено, а срок уже прошёл (раньше сегодняшнего дня)
   bool isOverdueOn(DateTime day) => !isDone && daysBetween(day, dueDate) < 0;
 
