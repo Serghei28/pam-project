@@ -50,6 +50,16 @@ public class Db {
 				  last_watered_at        TEXT    NOT NULL,
 				  created_at             TEXT    NOT NULL
 				)""");
+		// GreenGarden: watering journal. A log belongs to a plant of the user.
+		jdbc.execute("""
+				CREATE TABLE IF NOT EXISTS watering_logs (
+				  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+				  user_id    INTEGER NOT NULL REFERENCES users (id),
+				  plant_id   INTEGER NOT NULL REFERENCES plants (id),
+				  date       TEXT    NOT NULL,
+				  note       TEXT    NOT NULL DEFAULT '',
+				  created_at TEXT    NOT NULL
+				)""");
 		jdbc.execute("""
 				CREATE TABLE IF NOT EXISTS files (
 				  id         INTEGER PRIMARY KEY AUTOINCREMENT,

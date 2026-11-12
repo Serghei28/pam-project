@@ -4,8 +4,6 @@
 
 package md.utm.pam.backend;
 
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,19 +85,27 @@ public class Plants {
 					+ MIN_INTERVAL + " and " + MAX_INTERVAL);
 		}
 
-		String lastWateredAt = defaultLastWateredAt;
-		if (body.get("lastWateredAt") != null) {
-			if (!(body.get("lastWateredAt") instanceof String s)) {
-				throw Errors.validation("lastWateredAt must be an ISO-8601 string");
-			}
-			try {
-				lastWateredAt = Instant.parse(s).toString(); // normalized UTC
-			} catch (DateTimeParseException e) {
-				throw Errors.validation("lastWateredAt must be ISO-8601 UTC, "
-						+ "e.g. 2026-01-31T09:00:00Z");
-			}
-		}
+		String lastWateredAt = Errors.isoInstantField(body, "lastWateredAt");
+		if (lastWateredAt == null) lastWateredAt = defaultLastWateredAt;
 		return new Fields(name, species, photoUrl, interval, lastWateredAt);
+	}
+
+	/**
+	 * For entities that point at a plant (watering logs, reminders):
+	 * body.plantId must be an integer id of one of the user's plants.
+	 * Someone else's plant is treated like a missing one.
+	 */
+	static long requirePlantId(Db db, long userId, Map<String, Object> body) {
+		if (!(body.get("plantId") instanceof Number n)
+				|| n.doubleValue() != n.longValue()) {
+			throw Errors.validation("plantId must be an integer");
+		}
+		long plantId = n.longValue();
+		int count = db.jdbc.queryForObject(
+				"SELECT COUNT(*) FROM plants WHERE id = ? AND user_id = ?",
+				Integer.class, plantId, userId);
+		if (count == 0) throw Errors.validation("plantId: plant not found");
+		return plantId;
 	}
 
 	/** GET /plants?page=1&limit=20&search=  -> {items, page, limit, total} */
@@ -170,12 +176,16 @@ public class Plants {
 		return toJson(find(userId, id));
 	}
 
-	/** DELETE /plants/{id} -> 204 | 404 */
+	/**
+	 * DELETE /plants/{id} -> 204 | 404. Cascade: the plant's watering logs
+	 * go with it (SQLite does not enforce REFERENCES by default).
+	 */
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@RequestAttribute("userId") long userId,
 			@PathVariable long id) {
 		find(userId, id); // 404 before deleting
+		db.jdbc.update("DELETE FROM watering_logs WHERE plant_id = ?", id);
 		db.jdbc.update("DELETE FROM plants WHERE id = ?", id);
 	}
 

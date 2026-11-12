@@ -8,6 +8,8 @@
 
 package md.utm.pam.backend;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -75,6 +77,23 @@ public class Errors {
 	/** Returns body[key] as a trimmed non-empty string, or null when missing. */
 	static String stringField(Map<String, Object> body, String key) {
 		return body.get(key) instanceof String s && !s.isBlank() ? s.trim() : null;
+	}
+
+	/**
+	 * Returns body[key] as a normalized ISO-8601 UTC timestamp, or null when
+	 * missing. Anything else (not a string, not a valid instant) is a 400.
+	 */
+	static String isoInstantField(Map<String, Object> body, String key) {
+		Object value = body.get(key);
+		if (value == null) return null;
+		if (value instanceof String s) {
+			try {
+				return Instant.parse(s).toString();
+			} catch (DateTimeParseException e) {
+				// falls through to the validation error below
+			}
+		}
+		throw validation(key + " must be ISO-8601 UTC, e.g. 2026-01-31T09:00:00Z");
 	}
 
 	// -----------------------------------------------------------------------
