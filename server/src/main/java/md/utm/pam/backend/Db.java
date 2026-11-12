@@ -37,6 +37,19 @@ public class Db {
 				  content    TEXT    NOT NULL DEFAULT '',
 				  created_at TEXT    NOT NULL
 				)""");
+		// GreenGarden: plants of a user. last_watered_at is needed by the app
+		// to compute the next watering date (last + interval).
+		jdbc.execute("""
+				CREATE TABLE IF NOT EXISTS plants (
+				  id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+				  user_id                INTEGER NOT NULL REFERENCES users (id),
+				  name                   TEXT    NOT NULL,
+				  species                TEXT    NOT NULL DEFAULT '',
+				  photo_url              TEXT,
+				  watering_interval_days INTEGER NOT NULL,
+				  last_watered_at        TEXT    NOT NULL,
+				  created_at             TEXT    NOT NULL
+				)""");
 		jdbc.execute("""
 				CREATE TABLE IF NOT EXISTS files (
 				  id         INTEGER PRIMARY KEY AUTOINCREMENT,
