@@ -17,6 +17,24 @@ class Plant {
     required this.lastWateredAt,
   });
 
+  // Граница JSON (L5). Сервер хранит время в UTC (ISO-8601), а расчёт
+  // дней в приложении — в местном времени, поэтому .toLocal().
+  factory Plant.fromJson(Map<String, dynamic> j) => Plant(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    species: j['species'] as String? ?? '',
+    wateringIntervalDays: (j['wateringIntervalDays'] as num).toInt(),
+    lastWateredAt: DateTime.parse(j['lastWateredAt'] as String).toLocal(),
+  );
+
+  // Без id — идентичность даёт сервер (C8)
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'species': species,
+    'wateringIntervalDays': wateringIntervalDays,
+    'lastWateredAt': lastWateredAt.toUtc().toIso8601String(),
+  };
+
   // Дата следующего полива = дата последнего полива + интервал (в днях)
   DateTime get nextWateringAt => addDays(lastWateredAt, wateringIntervalDays);
 
