@@ -1,6 +1,6 @@
-import 'package:green_garden/data/mock_plant_repository.dart';
-import 'package:green_garden/data/mock_reminder_repository.dart';
-import 'package:green_garden/data/mock_watering_log_repository.dart';
+import 'fakes/mock_plant_repository.dart';
+import 'fakes/mock_reminder_repository.dart';
+import 'fakes/mock_watering_log_repository.dart';
 
 // Mock-хранилища без задержки — тесты не ждут по 800 мс на каждый вызов
 MockPlantRepository fastPlantRepo() =>

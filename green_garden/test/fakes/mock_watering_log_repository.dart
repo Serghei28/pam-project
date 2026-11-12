@@ -1,8 +1,9 @@
+import 'package:green_garden/data/result.dart';
+import 'package:green_garden/data/watering_log.dart';
+import 'package:green_garden/data/watering_log_repository.dart';
+
 import 'mock_data.dart';
 import 'mock_network.dart';
-import 'result.dart';
-import 'watering_log.dart';
-import 'watering_log_repository.dart';
 
 // Журнал полива «в памяти»: задержка + переключаемый сбой, как у растений.
 class MockWateringLogRepository with MockNetwork implements WateringLogRepository {

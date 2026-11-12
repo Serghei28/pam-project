@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'data/api_client.dart';
 import 'data/auth_api.dart';
-import 'data/mock_plant_repository.dart';
-import 'data/mock_reminder_repository.dart';
-import 'data/mock_watering_log_repository.dart';
+import 'data/http_plant_repository.dart';
+import 'data/http_reminder_repository.dart';
+import 'data/http_watering_log_repository.dart';
 import 'data/token_store.dart';
 import 'models/plants_model.dart';
 import 'models/reminder_model.dart';
@@ -28,22 +29,21 @@ Future<void> main() async {
   final loggedIn = await tokens.read() != null; // запуск решает по token-у
   router = createRouter(loggedIn: loggedIn);
 
-  final plantRepository = MockPlantRepository(); // на L5: http-варианты
-  final wateringLogRepository = MockWateringLogRepository();
-  final reminderRepository = MockReminderRepository();
+  // L5: mock умер — данные идут с сервера. 401 → login, в одном месте.
+  final api = ApiClient(
+    apiBase,
+    tokens,
+    onUnauthorized: () => router.go('/login'),
+  );
+  final plantRepository = HttpPlantRepository(api);
+  final wateringLogRepository = HttpWateringLogRepository(api);
+  final reminderRepository = HttpReminderRepository(api);
 
   runApp(
     MultiProvider(
       providers: [
         // register/login/logout; его читает экран входа и профиль
         Provider<AuthApi>(create: (_) => AuthApi(apiBase, tokens)),
-        // Леса для переключателя «Симулировать сбой сети» — исчезнут на L5.
-        // Repository не ChangeNotifier, поэтому простой Provider.value.
-        Provider<MockPlantRepository>.value(value: plantRepository),
-        Provider<MockWateringLogRepository>.value(
-          value: wateringLogRepository,
-        ),
-        Provider<MockReminderRepository>.value(value: reminderRepository),
         // Модель — через фабрику; ..load() запускает первую загрузку.
         ChangeNotifierProvider(
           create: (_) => PlantsModel(plantRepository)..load(),

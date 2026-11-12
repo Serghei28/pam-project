@@ -1,8 +1,9 @@
+import 'package:green_garden/data/reminder.dart';
+import 'package:green_garden/data/reminder_repository.dart';
+import 'package:green_garden/data/result.dart';
+
 import 'mock_data.dart';
 import 'mock_network.dart';
-import 'reminder.dart';
-import 'reminder_repository.dart';
-import 'result.dart';
 
 // Напоминания «в памяти»: задержка + переключаемый сбой.
 class MockReminderRepository with MockNetwork implements ReminderRepository {

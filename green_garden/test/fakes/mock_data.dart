@@ -1,6 +1,6 @@
-import 'plant.dart';
-import 'reminder.dart';
-import 'watering_log.dart';
+import 'package:green_garden/data/plant.dart';
+import 'package:green_garden/data/reminder.dart';
+import 'package:green_garden/data/watering_log.dart';
 
 // Только seed-данные. Даты считаются от сегодняшнего дня,
 // поэтому статусы «полито / пора поливать» верны при любом запуске.

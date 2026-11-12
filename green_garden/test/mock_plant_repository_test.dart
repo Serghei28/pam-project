@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:green_garden/data/mock_data.dart';
-import 'package:green_garden/data/mock_network.dart';
 import 'package:green_garden/data/result.dart';
 
+import 'fakes/mock_data.dart';
+import 'fakes/mock_network.dart';
 import 'helpers.dart';
 
 void main() {

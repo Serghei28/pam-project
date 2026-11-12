@@ -1,12 +1,14 @@
+import 'package:green_garden/data/plant.dart';
+import 'package:green_garden/data/plant_repository.dart';
+import 'package:green_garden/data/result.dart';
+
 import 'mock_data.dart';
 import 'mock_network.dart';
-import 'plant.dart';
-import 'plant_repository.dart';
-import 'result.dart';
 
 // Реализация PlantRepository «в памяти», с повадками сети:
 // задержка ответа и переключаемый сбой. Единственный файл,
-// который видит seed из mock_data.dart. На L5 его заменит http-вариант.
+// который видит seed из mock_data.dart. В приложении с L5 — http-вариант,
+// здесь — тестовый двойник.
 class MockPlantRepository with MockNetwork implements PlantRepository {
   final List<Plant> _plants = List.of(mockPlants); // копия seed-а
   int _nextId = mockFirstNewId; // больше любого id из seed-а

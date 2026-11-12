@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../data/auth_api.dart';
 import '../data/result.dart';
+import '../models/plants_model.dart';
+import '../models/reminder_model.dart';
+import '../models/watering_log_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -58,6 +61,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     switch (result) {
       case Ok():
+        // Модели живут в корне и переживают logout: перезагружаем их под
+        // новым token-ом — иначе после смены аккаунта видны чужие данные,
+        // а после «Сессия истекла» — старый экран ошибки.
+        context.read<PlantsModel>().load();
+        context.read<WateringLogModel>().load();
+        context.read<ReminderModel>().load();
         context.go('/plants'); // token сохранён — входим в список
       case Err(:final msg):
         ScaffoldMessenger.of(context).showSnackBar(

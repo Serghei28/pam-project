@@ -3,41 +3,17 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/auth_api.dart';
-import '../data/mock_plant_repository.dart';
-import '../data/mock_reminder_repository.dart';
-import '../data/mock_watering_log_repository.dart';
 import '../models/care_tasks.dart';
 import '../models/plants_model.dart';
 import '../models/reminder_model.dart';
 import '../models/watering_log_model.dart';
 import '../widgets/error_view.dart';
 
-class ProfileScreen extends StatefulWidget {
+// L5: переключатель «Симулировать сбой сети» умер вместе с mock-ами —
+// ошибку теперь провоцируют честнее, остановкой сервера.
+// Своего состояния у экрана не осталось → StatelessWidget.
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  // Положение переключателя — эфемерное состояние экрана → setState (C7)
-  bool _simulateError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Если экран пересоздан, показываем текущее состояние «аварии»
-    _simulateError = context.read<MockPlantRepository>().simulateError;
-  }
-
-  // Леса демонстрации аварии: ЕДИНСТВЕННОЕ место UI, которое знает о mock-ах.
-  // На L5 вместе с mock-ами исчезнет и этот переключатель.
-  void _setSimulateError(bool value) {
-    setState(() => _simulateError = value);
-    context.read<MockPlantRepository>().simulateError = value;
-    context.read<MockWateringLogRepository>().simulateError = value;
-    context.read<MockReminderRepository>().simulateError = value;
-  }
 
   Future<void> _logout(BuildContext context) async {
     final ok = await showDialog<bool>(
@@ -133,17 +109,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   subtitle: Text('Скоро'),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.cloud_off_outlined),
-              title: const Text('Симулировать сбой сети'),
-              subtitle: const Text('Все запросы к данным вернут ошибку'),
-              value: _simulateError,
-              onChanged: _setSimulateError,
             ),
           ),
           const SizedBox(height: 24),

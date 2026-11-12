@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:green_garden/data/mock_plant_repository.dart';
 import 'package:green_garden/data/plant.dart';
 import 'package:green_garden/data/result.dart';
 import 'package:green_garden/models/delete_plant.dart';
@@ -9,6 +8,7 @@ import 'package:green_garden/models/reminder_model.dart';
 import 'package:green_garden/models/water_plant.dart';
 import 'package:green_garden/models/watering_log_model.dart';
 
+import 'fakes/mock_plant_repository.dart';
 import 'helpers.dart';
 
 // Хранилище, у которого ломается только update — для проверки отката
