@@ -1,0 +1,40 @@
+// PAM backend template - Java/Spring Boot port.
+//
+// Start: ./gradlew bootRun   (no local Gradle needed - the wrapper downloads
+// the Gradle distribution on first run, then Maven Central dependencies).
+//
+// Note: Spring Initializr only generates Boot >= 4.0 projects nowadays, so
+// the 3.x version is pinned here by hand (latest stable 3.5.x line).
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.16'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'md.utm.pam'
+version = '0.0.1-SNAPSHOT'
+description = 'PAM backend template - Java/Spring Boot port'
+
+// No toolchain pinned to exactly 17: that fails on machines that only have a
+// newer JDK (e.g. 21). release = 17 builds Java 17 bytecode with any JDK >= 17.
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.release = 17
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// HTTP routes: Spring MVC + embedded Tomcat + Jackson.
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// JdbcTemplate: parameterized SQL you can read - no JPA/Hibernate.
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	// SQLite driver. Explicit version: Spring's BOM does not manage it.
+	implementation 'org.xerial:sqlite-jdbc:3.49.1.0'
+	// ONLY the crypto module (BCrypt) - not all of Spring Security, so no
+	// filter chain appears in front of our routes. Version from Spring's BOM.
+	implementation 'org.springframework.security:spring-security-crypto'
+}

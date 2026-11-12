@@ -1,0 +1,10 @@
+# Gradle tooling
+.gradle/
+build/
+# The wrapper JAR is part of the deliverable (bootstraps Gradle itself)
+!gradle/wrapper/gradle-wrapper.jar
+
+# Runtime data (created automatically on first start)
+app.db
+app.db-*
+uploads/
